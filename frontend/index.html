@@ -2,35 +2,225 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="NaloDAO - A New Economy for Earth. Track regenerative activities, govern community proposals, and manage a multi-chain token ecosystem." />
-    <meta name="keywords" content="DAO, regenerative, blockchain, Solana, Move, sustainability, community" />
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#22c55e" />
+    
+    <!-- Primary Meta Tags -->
+    <title>NaloDAO - A New Economy for Earth | Regenerative Finance Platform</title>
+    <meta name="title" content="NaloDAO - A New Economy for Earth | Regenerative Finance Platform" />
+    <meta name="description" content="Track regenerative activities, govern community proposals, and manage a multi-chain token ecosystem across Solana and Move-based blockchains. Join the future of sustainable finance." />
+    <meta name="keywords" content="DAO, regenerative finance, blockchain, Solana, Aptos, Sui, sustainability, community governance, impact tracking, green finance, DeFi, Web3" />
     <meta name="author" content="NaloDAO" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://nalodao.earth/" />
     <meta property="og:title" content="NaloDAO - A New Economy for Earth" />
-    <meta property="og:description" content="Track regenerative activities, govern community proposals, and manage a multi-chain token ecosystem." />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:description" content="Track regenerative activities, govern community proposals, and manage a multi-chain token ecosystem. Join thousands building a sustainable future." />
+    <meta property="og:image" content="https://nalodao.earth/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="NaloDAO" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://nalodao.earth/" />
     <meta property="twitter:title" content="NaloDAO - A New Economy for Earth" />
-    <meta property="twitter:description" content="Track regenerative activities, govern community proposals, and manage a multi-chain token ecosystem." />
-    <meta property="twitter:image" content="/og-image.png" />
+    <meta property="twitter:description" content="Track regenerative activities, govern community proposals, and manage a multi-chain token ecosystem. Join thousands building a sustainable future." />
+    <meta property="twitter:image" content="https://nalodao.earth/og-image.png" />
+    <meta property="twitter:creator" content="@nalodao" />
+    <meta property="twitter:site" content="@nalodao" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Additional Meta Tags -->
+    <meta name="application-name" content="NaloDAO" />
+    <meta name="msapplication-TileColor" content="#22c55e" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
     
-    <title>NaloDAO - A New Economy for Earth</title>
+    <!-- Preconnect to External Domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://api.supabase.co" />
+    <link rel="preconnect" href="https://relay.walletconnect.com" />
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- DNS Prefetch for Performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//api.supabase.co" />
+    <link rel="dns-prefetch" href="//relay.walletconnect.com" />
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "NaloDAO",
+      "description": "A Web3-native DAO platform that tracks regenerative activities, governs community proposals, and manages a multi-chain token ecosystem across Solana and Move-based blockchains.",
+      "url": "https://nalodao.earth",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "NaloDAO",
+        "url": "https://nalodao.earth"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "NaloDAO",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://nalodao.earth/logo.png"
+        }
+      },
+      "keywords": "DAO, regenerative finance, blockchain, sustainability, community governance",
+      "screenshot": "https://nalodao.earth/screenshot.png"
+    }
+    </script>
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="NaloDAO" />
+    
+    <!-- Performance Optimizations -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    
+    <!-- Critical CSS (inline for above-the-fold content) -->
+    <style>
+      /* Critical CSS for initial render */
+      body {
+        margin: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #ffffff;
+        color: #1f2937;
+      }
+      
+      #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Loading spinner */
+      .loading-spinner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #22c55e;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+      
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #1f2937;
+          color: #f9fafb;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Loading State -->
+    <div id="loading" class="loading-spinner"></div>
+    
+    <!-- Main App Container -->
+    <div id="root">
+      <!-- App will be mounted here -->
+    </div>
+    
+    <!-- Error Boundary Fallback -->
+    <div id="error-boundary" style="display: none; text-align: center; padding: 2rem;">
+      <h2>Something went wrong</h2>
+      <p>Please refresh the page or try again later.</p>
+      <button onclick="window.location.reload()" style="padding: 0.5rem 1rem; background: #22c55e; color: white; border: none; border-radius: 0.375rem; cursor: pointer;">
+        Refresh Page
+      </button>
+    </div>
+    
+    <!-- Main Script -->
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration (for PWA) -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Error Handling -->
+    <script>
+      window.addEventListener('error', function(e) {
+        console.error('Global error:', e.error);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-boundary').style.display = 'block';
+      });
+      
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise rejection:', e.reason);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-boundary').style.display = 'block';
+      });
+      
+      // Hide loading spinner when app is ready
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+          const loading = document.getElementById('loading');
+          if (loading) {
+            loading.style.display = 'none';
+          }
+        }, 1000);
+      });
+    </script>
+    
+    <!-- Analytics (optional - replace with your analytics provider) -->
+    <script>
+      // Google Analytics or other analytics can be added here
+      // Example:
+      // gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
   </body>
 </html>
