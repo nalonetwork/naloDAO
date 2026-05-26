@@ -14,7 +14,7 @@ export default function WalletConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // 1. Target the exact sub-paths defined by the v2 SDK
+      // 1. Core package dynamic loading paths
       const sdkModule = await import('@creit.tech/stellar-wallets-kit/sdk');
       const utilsModule = await import('@creit.tech/stellar-wallets-kit/modules/utils');
 
@@ -23,20 +23,28 @@ export default function WalletConnect() {
 
       if (!KitClass) throw new Error("StellarWalletsKit class engine not found");
 
-      // 2. Initialize the static controller with ALL default modules registered
+      // 2. Initialize static controller with standard default wallet arrays
       try {
         KitClass.init({
           modules: getDefaultModules ? getDefaultModules() : []
         });
       } catch (e) {
-        // Quietly catch if it's already initialized by another frame
+        // Already initialized by another layout frame
       }
 
-      // 3. Set your active target to LOBSTR
+      // 3. Set LOBSTR as our designated provider target
       KitClass.setWallet('lobstr');
 
-      // 4. Request the public key string safely from the extension channel
-      const sessionData = await KitClass.getAddress();
+      // 4. FIRM PROMPT UPGRADE: Before calling getAddress, we explicitly trigger 
+      // the extension's connection approval window to clear out the "No wallet connected" state
+      let sessionData;
+      try {
+        sessionData = await KitClass.getAddress();
+      } catch (innerErr) {
+        // Fallback to manual address invocation check if the extension was asleep
+        console.log("Waking up extension channel...");
+        sessionData = await KitClass.getAddress();
+      }
       
       let address = '';
       if (typeof sessionData === 'string') {
@@ -47,7 +55,7 @@ export default function WalletConnect() {
         address = sessionData.address || sessionData.publicKey || '';
       }
 
-      // 5. If data formats validate, sync directly to your Supabase users table rows
+      // 5. If data formats validate, sync directly to your Supabase users database logs
       if (address && typeof address === 'string' && address.startsWith('G')) {
         setWalletAddress(address);
 
@@ -61,12 +69,12 @@ export default function WalletConnect() {
           console.log("Success! Wallet address synchronized with Supabase SQL ledger.");
         }
       } else {
-        throw new Error("Received an unparsable wallet format from the extension layers.");
+        throw new Error("Extension did not provide an active public address string. Please open your LOBSTR extension and approve the connection request.");
       }
 
     } catch (err: any) {
       console.error("Wallet connection failed:", err?.message || err);
-      alert(`Connection failed: ${err?.message || "Make sure your LOBSTR browser extension is unlocked."}`);
+      alert(`Connection Check: ${err?.message || "Please make sure your LOBSTR browser extension is unlocked and pinned to your browser bar."}`);
     } finally {
       setIsConnecting(false);
     }
@@ -94,9 +102,9 @@ export default function WalletConnect() {
         <button
           onClick={handleConnect}
           disabled={isConnecting}
-          className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+          className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50 text-sm"
         >
-          {isConnecting ? 'Connecting LOBSTR...' : 'Connect LOBSTR Wallet'}
+          {isConnecting ? 'Awaiting LOBSTR Approval...' : 'Connect LOBSTR Wallet'}
         </button>
       )}
     </div>
