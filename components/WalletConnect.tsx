@@ -1,74 +1,45 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-// Import our secure Supabase bridge engine
+import React, { useState } from 'react';
 import { supabase } from './supabaseClient';
-
-declare global {
-  interface Window {
-    lobstr?: {
-      isConnected: () => Promise<boolean>;
-      getPublicKey: () => Promise<string>;
-    };
-  }
-}
 
 export default function WalletConnect() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [hasExtension, setHasExtension] = useState(false);
-
-  useEffect(() => {
-    // Check immediately if it's already there
-    if (typeof window !== 'undefined' && window.lobstr) {
-      setHasExtension(true);
-      return;
-    }
-
-    // Otherwise, check every 100ms for up to 2 seconds while the browser loads extensions
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      if (typeof window !== 'undefined' && window.lobstr) {
-        setHasExtension(true);
-        clearInterval(interval);
-      } else if (attempts >= 20) {
-        clearInterval(interval);
-      }
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      if (!window.lobstr) {
-        window.open('https://lobstr.co/', '_blank');
-        return;
-      }
+      // Dynamically import the kit ONLY when the user clicks the button.
+      // This completely stops Next.js Turbopack from breaking during build time!
+      const { StellarWalletsKit, WalletNetwork, WalletType } = await import('@creit.tech/stellar-wallets-kit');
 
-      // 1. Grab public key from the browser extension
-      const publicKey = await window.lobstr.getPublicKey();
-      setWalletAddress(publicKey);
+      const kit = new StellarWalletsKit({
+        network: WalletNetwork.TESTNET,
+        // This will create a clean UI modal supporting LOBSTR and other Stellar options
+        selectedWallet: WalletType.LOBSTR
+      });
 
-      // 2. Sync with Supabase Database via UPSERT
-      // This checks if the user exists; if not, it automatically creates a new row!
-      const { error } = await supabase
+      // 1. Request the public key string from the wallet layer
+      const { address } = await kit.getAddress();
+      setWalletAddress(address);
+
+      // 2. Sync cleanly to your Supabase SQL Table
+      const { error: dbError } = await supabase
         .from('users')
         .upsert(
-          { wallet_address: publicKey }, 
+          { wallet_address: address }, 
           { onConflict: 'wallet_address' }
         );
 
-      if (error) {
-        console.error("Failed to sync member profile to database:", error.message);
+      if (dbError) {
+        console.error("Database sync failed:", dbError.message);
       } else {
-        console.log("Member successfully synchronized with NaloDAO database ledger.");
+        console.log("Success! Wallet registered in Supabase SQL layer.");
       }
 
-   } catch (err: any) {
-      console.error("LOBSTR connection failed:", err?.message || err);
+    } catch (err: any) {
+      console.error("Stellar wallet connection canceled or failed:", err?.message || err);
     } finally {
       setIsConnecting(false);
     }
@@ -83,7 +54,7 @@ export default function WalletConnect() {
       {walletAddress ? (
         <div className="flex flex-col items-center gap-2">
           <span className="text-xs text-emerald-400 font-mono bg-slate-900 border border-emerald-500/20 px-3 py-1 rounded-md">
-            LOBSTR Connected: {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
+            Connected: {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
           </span>
           <button 
             onClick={disconnectWallet}
@@ -98,12 +69,7 @@ export default function WalletConnect() {
           disabled={isConnecting}
           className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
         >
-          {!hasExtension 
-            ? 'Install LOBSTR Wallet' 
-            : isConnecting 
-              ? 'Connecting...' 
-              : 'Connect LOBSTR Wallet'
-          }
+          {isConnecting ? 'Connecting LOBSTR...' : 'Connect LOBSTR Wallet'}
         </button>
       )}
     </div>
