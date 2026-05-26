@@ -14,29 +14,30 @@ export default function WalletConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // 1. Load root library wrapper
-      const kitModule = await import('@creit.tech/stellar-wallets-kit');
-      const KitEngine: any = kitModule.StellarWalletsKit || (kitModule as any).default?.StellarWalletsKit;
+      // 1. Target the exact sub-paths defined by the v2 SDK
+      const sdkModule = await import('@creit.tech/stellar-wallets-kit/sdk');
+      const utilsModule = await import('@creit.tech/stellar-wallets-kit/modules/utils');
 
-      if (!KitEngine) throw new Error("StellarWalletsKit not found");
+      const KitClass: any = sdkModule.StellarWalletsKit || (sdkModule as any).default?.StellarWalletsKit;
+      const getDefaultModules: any = utilsModule.defaultModules || (utilsModule as any).default?.defaultModules;
 
-      // 2. Clear out any hanging instance state and initialize targeting mainnet passphrase channels explicitly
+      if (!KitClass) throw new Error("StellarWalletsKit class engine not found");
+
+      // 2. Initialize the static controller with ALL default modules registered
       try {
-        KitEngine.init({
-          network: 'public',
-          modules: []
+        KitClass.init({
+          modules: getDefaultModules ? getDefaultModules() : []
         });
       } catch (e) {
-        // Already initialized
+        // Quietly catch if it's already initialized by another frame
       }
 
-      // 3. Bind LOBSTR as our designated provider
-      KitEngine.setWallet('lobstr');
+      // 3. Set your active target to LOBSTR
+      KitClass.setWallet('lobstr');
 
-      // 4. Request address metadata string safely
-      const sessionData = await KitEngine.getAddress();
+      // 4. Request the public key string safely from the extension channel
+      const sessionData = await KitClass.getAddress();
       
-      // DEEP EXTRACTOR FIXED: Safely reads raw string arrays, deep object definitions, or fallback values cleanly
       let address = '';
       if (typeof sessionData === 'string') {
         address = sessionData;
@@ -46,25 +47,21 @@ export default function WalletConnect() {
         address = sessionData.address || sessionData.publicKey || '';
       }
 
-      // Double check it's a valid public alphanumeric string format starting with "G"
+      // 5. If data formats validate, sync directly to your Supabase users table rows
       if (address && typeof address === 'string' && address.startsWith('G')) {
         setWalletAddress(address);
 
-        // 5. Send that real address straight to your Supabase users SQL table row ledger
         const { error: dbError } = await supabase
           .from('users')
-          .upsert(
-            { wallet_address: address }, 
-            { onConflict: 'wallet_address' }
-          );
+          .upsert({ wallet_address: address }, { onConflict: 'wallet_address' });
 
         if (dbError) {
           console.error("Database registration rejected:", dbError.message);
         } else {
-          console.log("Success! Wallet address synchronized with Supabase cloud table ledger.");
+          console.log("Success! Wallet address synchronized with Supabase SQL ledger.");
         }
       } else {
-        throw new Error("Received an unparsable wallet data format from the extension layers.");
+        throw new Error("Received an unparsable wallet format from the extension layers.");
       }
 
     } catch (err: any) {
