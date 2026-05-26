@@ -1,82 +1,75 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from './supabaseClient';
+import React, { useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+// 1. EMBEDDED BRIDGE: This completely resolves the 2307 import error!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function WalletConnect() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const buttonContainerRef = useRef<HTMLDivElement>(null);
-  const isInitialized = useRef(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
-  useEffect(() => {
-    // Prevent duplicate initializations during development multi-renders
-    if (isInitialized.current) return;
-    isInitialized.current = true;
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    try {
+      // 2. Dynamic module loading to keep Next.js Turbopack fast and happy
+      const { StellarWalletsKit } = await import('@creit.tech/stellar-wallets-kit');
+      const { defaultModules } = await import('@creit.tech/stellar-wallets-kit/modules/utils');
 
-    const setupStellarKit = async () => {
-      try {
-        // 1. Dynamic imports to keep Turbopack happy
-        const sdkModules = await import('@creit.tech/stellar-wallets-kit/sdk');
-        const utilsModules = await import('@creit.tech/stellar-wallets-kit/modules/utils');
-        
-        const KitClass = (sdkModules as any).StellarWalletsKit || (sdkModules as any).default?.StellarWalletsKit;
-        const getDefaultModules = (utilsModules as any).defaultModules || (utilsModules as any).default?.defaultModules;
+      // 3. Instantiate the connection class instance (Targets Live Stellar Mainnet)
+      const kit = new StellarWalletsKit({
+        network: 'public', 
+        modules: defaultModules() // Automatically handles QR codes for LOBSTR mobile users
+      });
 
-        if (!KitClass) return;
-
-        // 2. Initialize the static Core SDK Controller
-        KitClass.init({
-          modules: getDefaultModules ? getDefaultModules() : []
-        });
-
-        // 3. Render the official Modal UI wrapper into our container element
-        if (buttonContainerRef.current) {
-          KitClass.createButton(buttonContainerRef.current);
-        }
-
-        // 4. Create an interval loop to watch when a user finishes scanning & logging in
-        const addressCheckLoop = setInterval(async () => {
+      // 4. Open the visual wallet card selection overlay
+      await kit.openModal({
+        onClosed: () => console.log("Connection modal closed by user"),
+        onWalletSelected: async (option: any) => {
           try {
-            const sessionData = await KitClass.getAddress();
-            if (sessionData?.address && sessionData.address !== walletAddress) {
-              const connectedAddress = sessionData.address;
-              setWalletAddress(connectedAddress);
-              clearInterval(addressCheckLoop);
+            // Register their chosen wallet provider
+            kit.setWallet(option.id);
+            
+            // Extract the user's public address string from their approval action
+            const sessionData = await kit.getAddress();
+            const address = sessionData.address;
+            
+            if (address) {
+              setWalletAddress(address);
 
-              // 5. Instantly register the real Mainnet address into your Supabase grid row
+              // 5. Send that real address straight to your Supabase users SQL table
               const { error: dbError } = await supabase
                 .from('users')
                 .upsert(
-                  { wallet_address: connectedAddress }, 
+                  { wallet_address: address }, 
                   { onConflict: 'wallet_address' }
                 );
 
               if (dbError) {
-                console.error("Database enrollment rejected:", dbError.message);
+                console.error("Database registration rejected:", dbError.message);
               } else {
                 console.log("Success! Real wallet address synchronized with Supabase SQL ledger.");
               }
             }
-          } catch (e) {
-            // Quietly loop until the user actually selects a wallet option from the screen
+          } catch (innerErr) {
+            console.error("Failed parsing public key in selection callback:", innerErr);
           }
-        }, 1000);
+          return option.id;
+        }
+      });
 
-        return () => clearInterval(addressCheckLoop);
-
-      } catch (err) {
-        console.error("Stellar Wallets Kit layout system failed:", err);
-      }
-    };
-
-    setupStellarKit();
-  }, []);
+    } catch (err: any) {
+      console.error("Stellar wallet connection canceled or failed:", err?.message || err);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   const disconnectWallet = () => {
     setWalletAddress(null);
-    if (typeof window !== 'undefined') {
-      window.location.reload(); // Refresh to clean instance data mappings completely
-    }
   };
 
   return (
@@ -94,11 +87,13 @@ export default function WalletConnect() {
           </button>
         </div>
       ) : (
-        /* The SDK will draw the official Stellar ecosystem button inside this element */
-        <div 
-          ref={buttonContainerRef} 
-          className="stellar-kit-button-wrapper"
-        />
+        <button
+          onClick={handleConnect}
+          disabled={isConnecting}
+          className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+        >
+          {isConnecting ? 'Opening Connect UI...' : 'Connect Stellar Wallet'}
+        </button>
       )}
     </div>
   );
