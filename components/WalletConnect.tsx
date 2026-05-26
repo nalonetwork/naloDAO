@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -10,124 +10,78 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default function WalletConnect() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [walletType, setWalletType] = useState<string | null>(null);
 
-  const connectWithAlbedoWebWallet = async () => {
+  // On mount, look for an active, authenticated passport session in local state storage
+  useEffect(() => {
+    const savedAddress = localStorage.getItem('nalo_passport_address');
+    if (savedAddress) {
+      setWalletAddress(savedAddress);
+    }
+  }, []);
+
+  const handlePassportAuthentication = async () => {
+    setIsConnecting(true);
     try {
-      // Load the web-native secure pop-up engine
-      const albedo = (await import('@albedo-link/intent')).default;
-      
-      // Request secure browser session key authorization
+      // Import the lightweight web intent module dynamically
+      const albedoModule = await import('@albedo-link/intent');
+      const albedo = albedoModule.default;
+
+      // Request a public identity key authentication session
       const res = await albedo.publicKey({});
       const address = res.pubkey;
 
       if (address && address.startsWith('G')) {
-        finalizeWalletSession(address, 'Albedo Web Wallet');
+        setWalletAddress(address);
+        localStorage.setItem('nalo_passport_address', address);
+
+        // Synchronize the verified browser identity to your Supabase users cloud ledger
+        const { error: dbError } = await supabase
+          .from('users')
+          .upsert({ wallet_address: address }, { onConflict: 'wallet_address' });
+
+        if (dbError) {
+          console.error("Cloud registration failed:", dbError.message);
+        } else {
+          console.log("Success! Economy Passport mapped cleanly to Supabase ledger layers.");
+        }
       }
     } catch (err: any) {
-      console.error("Albedo authentication rejected:", err);
-      alert("Web wallet connection closed.");
+      console.error("Passport authentication aborted:", err);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
-  const connectWithLobstrExtension = async () => {
-    try {
-      const sdkModule = await import('@creit.tech/stellar-wallets-kit/sdk');
-      const utilsModule = await import('@creit.tech/stellar-wallets-kit/modules/utils');
-      const KitClass: any = sdkModule.StellarWalletsKit || (sdkModule as any).default?.StellarWalletsKit;
-      const getDefaultModules: any = utilsModule.defaultModules || (utilsModule as any).default?.defaultModules;
-
-      if (!KitClass) throw new Error("StellarWalletsKit missing");
-
-      try {
-        KitClass.init({ network: 'public', modules: getDefaultModules ? getDefaultModules() : [] });
-      } catch (e) {}
-
-      KitClass.setWallet('lobstr');
-      const sessionData = await KitClass.getAddress();
-      
-      let address = '';
-      if (typeof sessionData === 'string') address = sessionData;
-      else if (Array.isArray(sessionData) && sessionData[0]) address = sessionData[0]?.address || sessionData[0];
-      else if (sessionData && typeof sessionData === 'object') address = sessionData.address || sessionData.publicKey || '';
-
-      if (address && address.startsWith('G')) {
-        finalizeWalletSession(address, 'LOBSTR Extension');
-      } else {
-        throw new Error("No address provided from extension context.");
-      }
-    } catch (err: any) {
-      console.error("LOBSTR tracking failed, routing to Web Wallet fallback:", err);
-      // Automatically run fallback if the extension throws an error or is missing!
-      await connectWithAlbedoWebWallet();
-    }
-  };
-
-  const finalizeWalletSession = async (address: string, type: string) => {
-    setWalletAddress(address);
-    setWalletType(type);
-
-    // Synchronize user profile rows to your Supabase ledger
-    const { error: dbError } = await supabase
-      .from('users')
-      .upsert({ wallet_address: address }, { onConflict: 'wallet_address' });
-
-    if (dbError) console.error("Session sync rejected:", dbError.message);
-  };
-
-  const disconnectWallet = () => {
+  const handleDisconnect = () => {
     setWalletAddress(null);
-    setWalletType(null);
-  };
-
-  const triggerUnifiedOnboarding = async () => {
-    setIsConnecting(true);
-    // Attempt the premium extension link. If it fails, it instantly opens the Albedo Web creation window!
-    await connectWithLobstrExtension();
-    setIsConnecting(false);
+    localStorage.removeItem('nalo_passport_address');
   };
 
   return (
-    <div className="flex flex-col items-center justify-center bg-slate-900/40 border border-slate-800/80 p-4 rounded-2xl max-w-sm mx-auto">
+    <div className="flex items-center justify-center">
       {walletAddress ? (
-        <div className="flex flex-col items-center gap-1.5 text-center">
-          <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500">
-            Securely Authenticated via {walletType}
-          </span>
-          <span className="text-xs text-emerald-400 font-mono bg-slate-950 border border-emerald-500/20 px-3 py-1 rounded-md">
-            {walletAddress.slice(0, 6)}...{walletAddress.slice(-6)}
-          </span>
+        <div className="flex items-center gap-3 bg-slate-900/90 border border-emerald-500/20 pl-3 pr-2 py-1.5 rounded-xl shadow-md">
+          <div className="flex flex-col items-start text-left">
+            <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-bold">Active Passport</span>
+            <span className="text-xs text-emerald-400 font-mono">
+              {walletAddress.slice(0, 5)}...{walletAddress.slice(-5)}
+            </span>
+          </div>
           <button 
-            onClick={disconnectWallet} 
-            className="text-[11px] text-red-400 underline hover:text-red-300 transition mt-1"
+            onClick={handleDisconnect}
+            className="bg-slate-950 hover:bg-red-950/40 border border-slate-800 hover:border-red-500/20 text-slate-400 hover:text-red-400 text-[10px] font-mono px-2.5 py-2 rounded-lg transition-all duration-150"
           >
-            Disconnect Passport
+            Exit
           </button>
         </div>
       ) : (
-        <div className="space-y-3 w-full">
-          <button
-            onClick={triggerUnifiedOnboarding}
-            disabled={isConnecting}
-            className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/10 active:scale-95 disabled:opacity-50 text-sm"
-          >
-            {isConnecting ? 'Awaiting Passport Verification...' : 'Connect Passport Wallet'}
-          </button>
-          
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-slate-800/60"></div>
-            <span className="flex-shrink mx-3 text-[10px] font-mono uppercase tracking-widest text-slate-600">New To Web3?</span>
-            <div className="flex-grow border-t border-slate-800/60"></div>
-          </div>
-
-          <button
-            onClick={connectWithAlbedoWebWallet}
-            disabled={isConnecting}
-            className="w-full bg-slate-950 hover:bg-slate-900 text-slate-300 border border-slate-800 font-medium px-4 py-2.5 rounded-xl text-xs transition"
-          >
-            ✨ Create Instant Web Wallet (No Downloads Required)
-          </button>
-        </div>
+        <button
+          onClick={handlePassportAuthentication}
+          disabled={isConnecting}
+          className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-emerald-500/10 active:scale-95"
+        >
+          {isConnecting ? 'Opening Secure Portal...' : 'Get My Economy Passport 🌱'}
+        </button>
       )}
     </div>
   );
