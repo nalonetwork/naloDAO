@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -9,93 +9,95 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function WalletConnect() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [walletType, setWalletType] = useState<string | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInitializedRef = useRef(false);
 
-  // Auto-load active persistent sessions from local storage on component mount
-  useEffect(() => {
-    const savedAddress = localStorage.getItem('nalo_wallet_address');
-    const savedType = localStorage.getItem('nalo_wallet_type');
-    if (savedAddress && savedType) {
-      setWalletAddress(savedAddress);
-      setWalletType(savedType);
-    }
-  }, []);
-
-  const finalizeSession = async (address: string, type: string) => {
+  // Synchronize authenticated addresses down to the state layers and Supabase
+  const saveAuthenticatedSession = async (address: string) => {
     setWalletAddress(address);
-    setWalletType(type);
     localStorage.setItem('nalo_wallet_address', address);
-    localStorage.setItem('nalo_wallet_type', type);
-    setShowOptions(false);
 
-    // Sync to your Supabase users relational cloud ledger
     const { error: dbError } = await supabase
       .from('users')
       .upsert({ wallet_address: address }, { onConflict: 'wallet_address' });
 
-    if (dbError) console.error("Database sync rejected:", dbError.message);
+    if (dbError) console.error("Session database sync rejected:", dbError.message);
   };
 
-  const connectAlbedoPassport = async () => {
-    try {
-      const albedoModule = await import('@albedo-link/intent');
-      const albedo = albedoModule.default;
-      const res = await albedo.publicKey({});
-      if (res.pubkey && res.pubkey.startsWith('G')) {
-        finalizeSession(res.pubkey, 'Web Passport');
-      }
-    } catch (err) {
-      console.error("Albedo authentication canceled.");
+  useEffect(() => {
+    // Retain persistent address records across browser reloads
+    const savedAddress = localStorage.getItem('nalo_wallet_address');
+    if (savedAddress) {
+      setWalletAddress(savedAddress);
     }
-  };
 
-  const connectLobstrWallet = async () => {
-    try {
-      const sdkModule = await import('@creit.tech/stellar-wallets-kit/sdk');
-      const utilsModule = await import('@creit.tech/stellar-wallets-kit/modules/utils');
-      const KitClass: any = sdkModule.StellarWalletsKit || (sdkModule as any).default?.StellarWalletsKit;
-      const getDefaultModules: any = utilsModule.defaultModules || (utilsModule as any).default?.defaultModules;
-
-      if (!KitClass) throw new Error("StellarWalletsKit class not found");
+    const loadAndInjectModalButton = async () => {
+      if (isInitializedRef.current || !containerRef.current) return;
+      isInitializedRef.current = true;
 
       try {
-        KitClass.init({ modules: getDefaultModules ? getDefaultModules() : [] });
-      } catch (e) {}
+        // 1. Dynamic imports of official v2 module targets
+        const sdkModule = await import('@creit.tech/stellar-wallets-kit/sdk');
+        const utilsModule = await import('@creit.tech/stellar-wallets-kit/modules/utils');
 
-      KitClass.setWallet('lobstr');
-      const sessionData = await KitClass.getAddress();
-      
-      let address = '';
-      if (typeof sessionData === 'string') address = sessionData;
-      else if (Array.isArray(sessionData) && sessionData[0]) address = sessionData[0]?.address || sessionData[0];
-      else if (sessionData && typeof sessionData === 'object') address = sessionData.address || sessionData.publicKey || '';
+        const Kit: any = sdkModule.StellarWalletsKit || (sdkModule as any).default?.StellarWalletsKit;
+        const getDefaultModules: any = utilsModule.defaultModules || (utilsModule as any).default?.defaultModules;
 
-      if (address && address.startsWith('G')) {
-        finalizeSession(address, 'LOBSTR Account');
+        if (!Kit) return;
+
+        // 2. Clear lingering processes and initialize targeting mainnet
+        try {
+          Kit.init({
+            network: 'public',
+            modules: getDefaultModules ? getDefaultModules() : []
+          });
+        } catch (e) {
+          // Already initialized
+        }
+
+        // 3. Inject the official button directly into our DOM layout container ref
+        if (containerRef.current) {
+          containerRef.current.innerHTML = ''; // Sanitize container
+          Kit.createButton(containerRef.current);
+        }
+
+        // 4. Set up an open data listener. The moment any wallet or web passport connects, this captures it!
+        const interval = setInterval(async () => {
+          try {
+            const session = await Kit.getAddress();
+            const address = typeof session === 'string' ? session : session?.address || session[0]?.address;
+            
+            if (address && address.startsWith('G')) {
+              saveAuthenticatedSession(address);
+              clearInterval(interval);
+            }
+          } catch (e) {
+            // Awaiting user selection interactions silently
+          }
+        }, 1500);
+
+      } catch (err) {
+        console.error("Failed to inject official kit trigger button:", err);
       }
-    } catch (err) {
-      console.error("LOBSTR extension pipeline blocked or uninstalled.");
-      alert("Could not pull LOBSTR metadata. Ensure your extension is unlocked, or use the Web Passport instead!");
-    }
-  };
+    };
+
+    loadAndInjectModalButton();
+  }, []);
 
   const handleDisconnect = () => {
     setWalletAddress(null);
-    setWalletType(null);
     localStorage.removeItem('nalo_wallet_address');
-    localStorage.removeItem('nalo_wallet_type');
+    // Force a minor page state reload to safely wipe the library container cache
+    window.location.reload();
   };
 
   return (
-    <div className="relative flex flex-col items-center">
+    <div className="flex flex-col items-center justify-center">
       {walletAddress ? (
-        /* ACTIVE SESSION DASHBOARD VIEW */
         <div className="flex items-center gap-3 bg-slate-900/90 border border-emerald-500/20 pl-3 pr-2 py-1.5 rounded-xl shadow-xl">
           <div className="flex flex-col items-start text-left">
             <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-bold">
-              Connected via {walletType}
+              Account Passport Connected
             </span>
             <span className="text-xs text-emerald-400 font-mono">
               {walletAddress.slice(0, 5)}...{walletAddress.slice(-5)}
@@ -109,36 +111,11 @@ export default function WalletConnect() {
           </button>
         </div>
       ) : (
-        /* DISCONNECTED ACCOUNT CONNECT BUTTON TRIGGER */
-        <div className="flex flex-col items-center gap-2">
-          <button
-            onClick={() => setShowOptions(!showOptions)}
-            className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-emerald-500/10 active:scale-95"
-          >
-            {showOptions ? 'Close Connection Panel' : 'Connect My Account 🌱'}
-          </button>
-
-          {/* HIDDEN TIERED CHOICE SELECTION MODAL LAYER */}
-          {showOptions && (
-            <div className="absolute top-14 z-50 w-64 bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-2xl space-y-2 animate-fade-in">
-              <button
-                onClick={connectAlbedoPassport}
-                className="w-full text-left bg-slate-950 hover:bg-slate-800/80 p-2.5 rounded-lg border border-slate-800/60 transition group"
-              >
-                <div className="text-xs font-bold text-white group-hover:text-emerald-400 transition">✨ Web Economy Passport</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Instant browser account, zero downloads.</div>
-              </button>
-
-              <button
-                onClick={connectLobstrWallet}
-                className="w-full text-left bg-slate-950 hover:bg-slate-800/80 p-2.5 rounded-lg border border-slate-800/60 transition group"
-              >
-                <div className="text-xs font-bold text-white group-hover:text-emerald-400 transition">🛡️ LOBSTR Wallet Link</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">Connect your browser extension.</div>
-              </button>
-            </div>
-          )}
-        </div>
+        /* The official UI framework modal button gets dynamically painted right into this div */
+        <div 
+          ref={containerRef} 
+          className="[&>button]:bg-emerald-500 [&>button]:hover:bg-emerald-600 [&>button]:!text-slate-950 [&>button]:font-extrabold [&>button]:px-6 [&>button]:py-3 [&>button]:!rounded-xl [&>button]:text-sm [&>button]:transition-all [&>button]:duration-200 [&>button]:shadow-lg [&>button]:shadow-emerald-500/10 [&>button]:active:scale-95"
+        />
       )}
     </div>
   );
