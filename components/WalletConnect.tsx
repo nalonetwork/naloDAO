@@ -10,21 +10,27 @@ export default function WalletConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // Dynamically import the kit ONLY when the user clicks the button.
-      // This completely stops Next.js Turbopack from breaking during build time!
-      const { StellarWalletsKit, WalletNetwork, WalletType } = await import('@creit.tech/stellar-wallets-kit');
+      // 1. Dynamically import the core library at click-time
+      const modules = await import('@creit.tech/stellar-wallets-kit');
+      
+      // Determine the correct constructor location (handles both ESM and CommonJS fallback defaults)
+      const KitConstructor = (modules as any).StellarWalletsKit || (modules as any).default?.StellarWalletsKit;
 
-      const kit = new StellarWalletsKit({
-        network: WalletNetwork.TESTNET,
-        // This will create a clean UI modal supporting LOBSTR and other Stellar options
-        selectedWallet: WalletType.LOBSTR
+      if (!KitConstructor) {
+        throw new Error("Could not locate StellarWalletsKit module initialization constructor.");
+      }
+
+      // 2. Initialize using plain string parameters to bypass property parsing bugs
+      const kit = new KitConstructor({
+        network: 'testnet', 
+        selectedWallet: 'lobstr'
       });
 
-      // 1. Request the public key string from the wallet layer
+      // 3. Request the public key string from the wallet layer
       const { address } = await kit.getAddress();
       setWalletAddress(address);
 
-      // 2. Sync cleanly to your Supabase SQL Table
+      // 4. Sync cleanly to your Supabase SQL Table
       const { error: dbError } = await supabase
         .from('users')
         .upsert(
