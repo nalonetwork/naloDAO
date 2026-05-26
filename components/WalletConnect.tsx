@@ -10,35 +10,34 @@ export default function WalletConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // 1. Dynamically import the library package at click-time
+      // 1. Dynamically import the kit and preset utils at click-time
       const modules = await import('@creit.tech/stellar-wallets-kit');
+      const utils = await import('@creit.tech/stellar-wallets-kit/modules/utils');
       
-      // Resolve constructor position across ESM and CommonJS structures
       const KitConstructor = (modules as any).StellarWalletsKit || (modules as any).default?.StellarWalletsKit;
+      const getDefaultModules = (utils as any).defaultModules || (utils as any).default?.defaultModules;
 
       if (!KitConstructor) {
         throw new Error("Could not locate StellarWalletsKit module constructor.");
       }
 
-      // 2. Initialize the instance targeting the Stellar Testnet
+      // 2. Initialize targeting the live Stellar Mainnet ('public')
       const kit = new KitConstructor({
-        network: 'testnet',
-        // Instructs the kit to load up the modular connection frameworks
-        modules: [] 
+        network: 'public', // Changed to public mainnet to match your real LOBSTR account
+        modules: getDefaultModules ? getDefaultModules() : [] // Injects LOBSTR QR and connection protocols
       });
 
-      // 3. Open the modal wrapper and retrieve coordinates within the selection callback
+      // 3. Deploy the visual connection menu selection card
       await kit.openModal({
         onWalletSelected: async (option: any) => {
           try {
-            // Assign the choice provider
             kit.setWallet(option.id);
             
-            // Fetch the public address key string safely from the active wallet state
+            // 4. Extract public address key securely from user approval action
             const { address } = await kit.getAddress();
             setWalletAddress(address);
 
-            // 4. Record directly to your Supabase SQL Row ledger
+            // 5. Send real address row safely straight to your Supabase SQL layer
             const { error: dbError } = await supabase
               .from('users')
               .upsert(
@@ -47,12 +46,12 @@ export default function WalletConnect() {
               );
 
             if (dbError) {
-              console.error("Database sync failed:", dbError.message);
+              console.error("Database registration rejected:", dbError.message);
             } else {
-              console.log("Success! Wallet registered in Supabase SQL layer.");
+              console.log("Success! Real wallet address synchronized with Supabase SQL ledger.");
             }
           } catch (innerErr) {
-            console.error("Failed handling public key parsing within selection loop:", innerErr);
+            console.error("Failed managing user address resolution inside selection callback:", innerErr);
           }
         }
       });
@@ -88,7 +87,7 @@ export default function WalletConnect() {
           disabled={isConnecting}
           className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
         >
-          {isConnecting ? 'Opening Modal...' : 'Connect Stellar Wallet'}
+          {isConnecting ? 'Opening Connect Card...' : 'Connect Stellar Wallet'}
         </button>
       )}
     </div>
