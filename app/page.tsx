@@ -1,4 +1,5 @@
 import React from 'react';
+import WalletConnect from '../components/WalletConnect';
 
 export default function Home() {
   return (
@@ -20,13 +21,13 @@ export default function Home() {
           Building a decentralized, Web3-native platform where regenerative activities are tracked, rewarded, and governed natively on the low-emission **Stellar Network**.
         </p>
 
-        {/* Call to Action Buttons */}
-        <div className="flex flex-wrap justify-center gap-4 pt-4">
-          <button className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-95">
-            Connect Stellar Wallet
-          </button>
+        {/* Dynamic Action Area */}
+        <div className="flex flex-wrap justify-center items-center gap-4 pt-4">
+          {/* Our stellar connector module */}
+          <WalletConnect />
+          
           <button className="bg-slate-900 hover:bg-slate-800 text-slate-300 font-medium px-6 py-3 rounded-xl border border-slate-800 transition-all duration-200 active:scale-95">
-            Explore Soroban Contracts
+            Read Vision
           </button>
         </div>
       </header>
