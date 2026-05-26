@@ -5,7 +5,7 @@ import WalletConnect from '../components/WalletConnect';
 import ProposalForm from '@/components/ProposalForm';
 import ProposalFeed from '@/components/ProposalFeed';
 import MerchantRegister from '@/components/MerchantRegister';
-import MarketplaceFeed from '@/components/MarketplaceFeed';
+import SacredMarketplace from '@/components/SacredMarketplace';
 
 export default function Home() {
   const [showVision, setShowVision] = useState(false);
@@ -110,7 +110,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* VIEW 2: COMPLIANT MARKETPLACE VIEW (REGISTRATION + CHECKOUT FEED) */}
+        {/* VIEW 2: COMPLIANT SACRED MARKETPLACE VIEW (REGISTRATION + SACRED STORY FEED) */}
         {activeTab === 'marketplace' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <div className="space-y-4">
@@ -125,7 +125,7 @@ export default function Home() {
                 <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">Active Supply Registry</h3>
                 <p className="text-xs text-slate-400">Browse verified stewards and execute secure, peer-to-peer digital transactions.</p>
               </div>
-              <MarketplaceFeed />
+              <SacredMarketplace />
             </div>
           </div>
         )}
