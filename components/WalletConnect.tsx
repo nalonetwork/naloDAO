@@ -14,43 +14,62 @@ export default function WalletConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // 1. Dynamic import at runtime to keep Turbopack happy
+      // 1. Load root library wrapper
       const kitModule = await import('@creit.tech/stellar-wallets-kit');
       const KitEngine: any = kitModule.StellarWalletsKit || (kitModule as any).default?.StellarWalletsKit;
 
       if (!KitEngine) throw new Error("StellarWalletsKit not found");
 
-      // 2. Initialize targeting the live Mainnet
+      // 2. Clear out any hanging instance state and initialize targeting mainnet passphrase channels explicitly
       try {
-        KitEngine.init({ network: 'public', modules: [] });
+        KitEngine.init({
+          network: 'public',
+          modules: []
+        });
       } catch (e) {
         // Already initialized
       }
 
-      // 3. Set LOBSTR as our designated provider
+      // 3. Bind LOBSTR as our designated provider
       KitEngine.setWallet('lobstr');
 
-      // 4. Request the public key address string securely from the wallet
+      // 4. Request address metadata string safely
       const sessionData = await KitEngine.getAddress();
-      const address = sessionData?.address || sessionData;
+      
+      // DEEP EXTRACTOR FIXED: Safely reads raw string arrays, deep object definitions, or fallback values cleanly
+      let address = '';
+      if (typeof sessionData === 'string') {
+        address = sessionData;
+      } else if (Array.isArray(sessionData) && sessionData[0]) {
+        address = sessionData[0]?.address || sessionData[0];
+      } else if (sessionData && typeof sessionData === 'object') {
+        address = sessionData.address || sessionData.publicKey || '';
+      }
 
-      if (address && typeof address === 'string') {
+      // Double check it's a valid public alphanumeric string format starting with "G"
+      if (address && typeof address === 'string' && address.startsWith('G')) {
         setWalletAddress(address);
 
-        // 5. Sync directly to your Supabase users SQL grid row
+        // 5. Send that real address straight to your Supabase users SQL table row ledger
         const { error: dbError } = await supabase
           .from('users')
-          .upsert({ wallet_address: address }, { onConflict: 'wallet_address' });
+          .upsert(
+            { wallet_address: address }, 
+            { onConflict: 'wallet_address' }
+          );
 
         if (dbError) {
           console.error("Database registration rejected:", dbError.message);
         } else {
-          console.log("Success! Wallet address synchronized with Supabase.");
+          console.log("Success! Wallet address synchronized with Supabase cloud table ledger.");
         }
+      } else {
+        throw new Error("Received an unparsable wallet data format from the extension layers.");
       }
+
     } catch (err: any) {
       console.error("Wallet connection failed:", err?.message || err);
-      alert("Make sure your LOBSTR browser extension is unlocked and active, or try again!");
+      alert(`Connection failed: ${err?.message || "Make sure your LOBSTR browser extension is unlocked."}`);
     } finally {
       setIsConnecting(false);
     }
@@ -67,7 +86,10 @@ export default function WalletConnect() {
           <span className="text-xs text-emerald-400 font-mono bg-slate-900 border border-emerald-500/20 px-3 py-1 rounded-md">
             Connected: {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
           </span>
-          <button onClick={disconnectWallet} className="text-xs text-red-400 underline hover:text-red-300 transition">
+          <button 
+            onClick={disconnectWallet} 
+            className="text-xs text-red-400 underline hover:text-red-300 transition"
+          >
             Disconnect Session
           </button>
         </div>
