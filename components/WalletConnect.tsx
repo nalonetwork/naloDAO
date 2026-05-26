@@ -10,34 +10,38 @@ export default function WalletConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // 1. Dynamically import the kit and preset utils at click-time
-      const modules = await import('@creit.tech/stellar-wallets-kit');
-      const utils = await import('@creit.tech/stellar-wallets-kit/modules/utils');
+      // 1. Dynamically import the core library and utils at click-time
+      const modules = await import('@creit.tech/stellar-wallets-kit/sdk');
+      const utils = await import('@creit.tech/stellar-wallets-kit/utils');
+      const modulesUtils = await import('@creit.tech/stellar-wallets-kit/modules/utils');
       
-      const KitConstructor = (modules as any).StellarWalletsKit || (modules as any).default?.StellarWalletsKit;
-      const getDefaultModules = (utils as any).defaultModules || (utils as any).default?.defaultModules;
+      // Extract the core static class controller and modules
+      const KitClass = (modules as any).StellarWalletsKit || (modules as any).default?.StellarWalletsKit;
+      const WalletNetwork = (utils as any).WalletNetwork || (utils as any).default?.WalletNetwork;
+      const getDefaultModules = (modulesUtils as any).defaultModules || (modulesUtils as any).default?.defaultModules;
 
-      if (!KitConstructor) {
-        throw new Error("Could not locate StellarWalletsKit module constructor.");
+      if (!KitClass) {
+        throw new Error("Could not locate StellarWalletsKit static class engine.");
       }
 
-      // 2. Initialize targeting the live Stellar Mainnet ('public')
-      const kit = new KitConstructor({
-        network: 'public', // Changed to public mainnet to match your real LOBSTR account
-        modules: getDefaultModules ? getDefaultModules() : [] // Injects LOBSTR QR and connection protocols
+      // 2. Initialize the static controller targeting the live Stellar Public Mainnet
+      KitClass.init({
+        network: WalletNetwork?.PUBLIC || 'public',
+        modules: getDefaultModules ? getDefaultModules() : [] // Injects LOBSTR QR and standard protocols
       });
 
-      // 3. Deploy the visual connection menu selection card
-      await kit.openModal({
+      // 3. Open the static visual selection card modal wrapper
+      await KitClass.openModal({
         onWalletSelected: async (option: any) => {
           try {
-            kit.setWallet(option.id);
+            // Assign the choice provider option
+            KitClass.setWallet(option.id);
             
-            // 4. Extract public address key securely from user approval action
-            const { address } = await kit.getAddress();
+            // Extract public address key securely from user approval action
+            const { address } = await KitClass.getAddress();
             setWalletAddress(address);
 
-            // 5. Send real address row safely straight to your Supabase SQL layer
+            // 4. Record directly to your Supabase SQL Row ledger
             const { error: dbError } = await supabase
               .from('users')
               .upsert(
