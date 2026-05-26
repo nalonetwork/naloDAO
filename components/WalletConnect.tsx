@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
+// Import the kit directly at the top—this completely stops Turbopack from losing module functions
+import { StellarWalletsKit } from '@creit.tech/stellar-wallets-kit';
+import { defaultModules } from '@creit.tech/stellar-wallets-kit/modules/utils';
 
-// Embedded Supabase configuration to keep everything self-contained and path-error free
+// Self-contained Supabase initialization config
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -11,61 +14,49 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default function WalletConnect() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const kitRef = useRef<StellarWalletsKit | null>(null);
+
+  useEffect(() => {
+    // Safely instantiate the kit instance once the component mounts inside the browser window
+    if (!kitRef.current) {
+      kitRef.current = new StellarWalletsKit({
+        network: 'public', // Points directly to live LOBSTR Mainnet frequencies
+        modules: defaultModules() // Injects out-of-the-box LOBSTR QR layout protocols
+      });
+    }
+  }, []);
 
   const handleConnect = async () => {
+    if (!kitRef.current) return;
     setIsConnecting(true);
+
     try {
-      // 1. Dynamic root import to keep Next.js Turbopack fast and happy
-      const kitModule = await import('@creit.tech/stellar-wallets-kit');
-      
-      // Extract the core kit class as a flexible type to resolve errors 2554, 2339, and 2576
-      const Kit: any = kitModule.StellarWalletsKit || (kitModule as any).default?.StellarWalletsKit;
-
-      if (!Kit) {
-        throw new Error("Could not extract StellarWalletsKit module from package root.");
-      }
-
-      // 2. Initialize using the static configuration format
-      Kit.init({
-        network: 'public', // Connects directly to live LOBSTR Mainnet account frequencies
-        modules: []        // Uses the standard built-in core UI module configurations
-      });
-
-      // 3. Open the modal card layout utilizing the static structural loop
-      await Kit.openModal({
-        onClosed: () => console.log("Connection modal overlay dismissed"),
+      // Open the visual wallet card overlay using the persistent instance reference safely
+      const { address } = await kitRef.current.openModal({
+        onClosed: () => console.log("Connection modal closed"),
         onWalletSelected: async (option: any) => {
-          try {
-            // Assign the user's selected wallet choice parameter statically
-            Kit.setWallet(option.id);
-            
-            // Extract public address key securely from the active session
-            const sessionData = await Kit.getAddress();
-            const address = sessionData?.address || sessionData;
-            
-            if (address && typeof address === 'string') {
-              setWalletAddress(address);
-
-              // 4. Record the mainnet address straight to your Supabase users SQL table grid
-              const { error: dbError } = await supabase
-                .from('users')
-                .upsert(
-                  { wallet_address: address }, 
-                  { onConflict: 'wallet_address' }
-                );
-
-              if (dbError) {
-                console.error("Database registration rejected:", dbError.message);
-              } else {
-                console.log("Success! Wallet registered in your Supabase cloud table ledger.");
-              }
-            }
-          } catch (innerErr) {
-            console.error("Error extracting public key inside selection loop:", innerErr);
-          }
+          kitRef.current?.setWallet(option.id);
           return option.id;
         }
       });
+
+      if (address) {
+        setWalletAddress(address);
+
+        // Record the address directly to your Supabase users table rows grid ledger
+        const { error: dbError } = await supabase
+          .from('users')
+          .upsert(
+            { wallet_address: address }, 
+            { onConflict: 'wallet_address' }
+          );
+
+        if (dbError) {
+          console.error("Database registration rejected:", dbError.message);
+        } else {
+          console.log("Success! Real wallet address synchronized with Supabase SQL ledger.");
+        }
+      }
 
     } catch (err: any) {
       console.error("Stellar wallet connection canceled or failed:", err?.message || err);
