@@ -1,6 +1,7 @@
 import React from 'react';
 import WalletConnect from '../components/WalletConnect';
 import ProposalForm from '@/components/ProposalForm';
+import ProposalFeed from '@/components/ProposalFeed';
 
 export default function Home() {
   return (
@@ -27,6 +28,7 @@ export default function Home() {
           {/* Our stellar connector module */}
           <WalletConnect />
           <ProposalForm />
+          <ProposalFeed />
           
           <button className="bg-slate-900 hover:bg-slate-800 text-slate-300 font-medium px-6 py-3 rounded-xl border border-slate-800 transition-all duration-200 active:scale-95">
             Read Vision
