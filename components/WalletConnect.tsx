@@ -10,38 +10,35 @@ export default function WalletConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // 1. Dynamically import the core library and utils at click-time
-      const modules = await import('@creit.tech/stellar-wallets-kit/sdk');
-      const utils = await import('@creit.tech/stellar-wallets-kit/utils');
-      const modulesUtils = await import('@creit.tech/stellar-wallets-kit/modules/utils');
+      // 1. Dynamically import the core toolkit and modules helper packages
+      const sdkModules = await import('@creit.tech/stellar-wallets-kit/sdk');
+      const utilsModules = await import('@creit.tech/stellar-wallets-kit/modules/utils');
       
-      // Extract the core static class controller and modules
-      const KitClass = (modules as any).StellarWalletsKit || (modules as any).default?.StellarWalletsKit;
-      const WalletNetwork = (utils as any).WalletNetwork || (utils as any).default?.WalletNetwork;
-      const getDefaultModules = (modulesUtils as any).defaultModules || (modulesUtils as any).default?.defaultModules;
+      // Resolve the true class constructors
+      const KitClass = (sdkModules as any).StellarWalletsKit || (sdkModules as any).default?.StellarWalletsKit;
+      const getDefaultModules = (utilsModules as any).defaultModules || (utilsModules as any).default?.defaultModules;
 
       if (!KitClass) {
-        throw new Error("Could not locate StellarWalletsKit static class engine.");
+        throw new Error("Could not locate StellarWalletsKit module properties.");
       }
 
-      // 2. Initialize the static controller targeting the live Stellar Public Mainnet
+      // 2. Initialize the static controller with the open-source wallet presets
       KitClass.init({
-        network: WalletNetwork?.PUBLIC || 'public',
-        modules: getDefaultModules ? getDefaultModules() : [] // Injects LOBSTR QR and standard protocols
+        modules: getDefaultModules ? getDefaultModules() : []
       });
 
-      // 3. Open the static visual selection card modal wrapper
+      // 3. Launch the modal popup layout card container
       await KitClass.openModal({
         onWalletSelected: async (option: any) => {
           try {
-            // Assign the choice provider option
+            // Assign selection
             KitClass.setWallet(option.id);
             
-            // Extract public address key securely from user approval action
+            // 4. Request public address key string from the active session
             const { address } = await KitClass.getAddress();
             setWalletAddress(address);
 
-            // 4. Record directly to your Supabase SQL Row ledger
+            // 5. Stream the actual Mainnet address to your Supabase users SQL grid
             const { error: dbError } = await supabase
               .from('users')
               .upsert(
