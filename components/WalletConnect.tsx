@@ -19,9 +19,25 @@ export default function WalletConnect() {
   const [hasExtension, setHasExtension] = useState(false);
 
   useEffect(() => {
+    // Check immediately if it's already there
     if (typeof window !== 'undefined' && window.lobstr) {
       setHasExtension(true);
+      return;
     }
+
+    // Otherwise, check every 100ms for up to 2 seconds while the browser loads extensions
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (typeof window !== 'undefined' && window.lobstr) {
+        setHasExtension(true);
+        clearInterval(interval);
+      } else if (attempts >= 20) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleConnect = async () => {
