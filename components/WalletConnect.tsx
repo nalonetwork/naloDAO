@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+// Import our secure Supabase bridge engine
+import { supabase } from './supabaseClient';
 
-// Declare global window interface for TypeScript so it knows LOBSTR exists
 declare global {
   interface Window {
     lobstr?: {
       isConnected: () => Promise<boolean>;
       getPublicKey: () => Promise<string>;
-      signTransaction: (transactionXdr: string) => Promise<string>;
     };
   }
 }
@@ -18,7 +18,6 @@ export default function WalletConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [hasExtension, setHasExtension] = useState(false);
 
-  // Check if the user actually has LOBSTR extension installed in their browser
   useEffect(() => {
     if (typeof window !== 'undefined' && window.lobstr) {
       setHasExtension(true);
@@ -29,16 +28,31 @@ export default function WalletConnect() {
     setIsConnecting(true);
     try {
       if (!window.lobstr) {
-        // If they don't have LOBSTR, open a new tab to download it
         window.open('https://lobstr.co/', '_blank');
         return;
       }
 
-      // Request the public address key directly from LOBSTR
+      // 1. Grab public key from the browser extension
       const publicKey = await window.lobstr.getPublicKey();
       setWalletAddress(publicKey);
+
+      // 2. Sync with Supabase Database via UPSERT
+      // This checks if the user exists; if not, it automatically creates a new row!
+      const { error } = await supabase
+        .from('users')
+        .upsert(
+          { wallet_address: publicKey }, 
+          { onConflict: 'wallet_address' }
+        );
+
+      if (error) {
+        console.error("Failed to sync member profile to database:", error.message);
+      } else {
+        console.log("Member successfully synchronized with NaloDAO database ledger.");
+      }
+
     } catch (error) {
-      console.error("LOBSTR Wallet connection failed:", error);
+      console.error("LOBSTR connection failed:", error);
     } finally {
       setIsConnecting(false);
     }
@@ -52,7 +66,6 @@ export default function WalletConnect() {
     <div>
       {walletAddress ? (
         <div className="flex flex-col items-center gap-2">
-          {/* Shows connected wallet address status */}
           <span className="text-xs text-emerald-400 font-mono bg-slate-900 border border-emerald-500/20 px-3 py-1 rounded-md">
             LOBSTR Connected: {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
           </span>
