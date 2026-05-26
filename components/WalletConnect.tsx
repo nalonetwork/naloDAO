@@ -51,8 +51,8 @@ export default function WalletConnect() {
         console.log("Member successfully synchronized with NaloDAO database ledger.");
       }
 
-    } catch (error) {
-      console.error("LOBSTR connection failed:", error);
+   } catch (err: any) {
+      console.error("LOBSTR connection failed:", err?.message || err);
     } finally {
       setIsConnecting(false);
     }
