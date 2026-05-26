@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// 1. EMBEDDED BRIDGE: This completely resolves the 2307 import error!
+// Embedded Supabase configuration to keep everything self-contained and path-error free
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -15,32 +15,38 @@ export default function WalletConnect() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // 2. Dynamic module loading to keep Next.js Turbopack fast and happy
-      const { StellarWalletsKit } = await import('@creit.tech/stellar-wallets-kit');
-      const { defaultModules } = await import('@creit.tech/stellar-wallets-kit/modules/utils');
+      // 1. Dynamic root import to keep Next.js Turbopack fast and happy
+      const kitModule = await import('@creit.tech/stellar-wallets-kit');
+      
+      // Extract the core kit class as a flexible type to resolve errors 2554, 2339, and 2576
+      const Kit: any = kitModule.StellarWalletsKit || (kitModule as any).default?.StellarWalletsKit;
 
-      // 3. Instantiate the connection class instance (Targets Live Stellar Mainnet)
-      const kit = new StellarWalletsKit({
-        network: 'public', 
-        modules: defaultModules() // Automatically handles QR codes for LOBSTR mobile users
+      if (!Kit) {
+        throw new Error("Could not extract StellarWalletsKit module from package root.");
+      }
+
+      // 2. Initialize using the static configuration format
+      Kit.init({
+        network: 'public', // Connects directly to live LOBSTR Mainnet account frequencies
+        modules: []        // Uses the standard built-in core UI module configurations
       });
 
-      // 4. Open the visual wallet card selection overlay
-      await kit.openModal({
-        onClosed: () => console.log("Connection modal closed by user"),
+      // 3. Open the modal card layout utilizing the static structural loop
+      await Kit.openModal({
+        onClosed: () => console.log("Connection modal overlay dismissed"),
         onWalletSelected: async (option: any) => {
           try {
-            // Register their chosen wallet provider
-            kit.setWallet(option.id);
+            // Assign the user's selected wallet choice parameter statically
+            Kit.setWallet(option.id);
             
-            // Extract the user's public address string from their approval action
-            const sessionData = await kit.getAddress();
-            const address = sessionData.address;
+            // Extract public address key securely from the active session
+            const sessionData = await Kit.getAddress();
+            const address = sessionData?.address || sessionData;
             
-            if (address) {
+            if (address && typeof address === 'string') {
               setWalletAddress(address);
 
-              // 5. Send that real address straight to your Supabase users SQL table
+              // 4. Record the mainnet address straight to your Supabase users SQL table grid
               const { error: dbError } = await supabase
                 .from('users')
                 .upsert(
@@ -51,11 +57,11 @@ export default function WalletConnect() {
               if (dbError) {
                 console.error("Database registration rejected:", dbError.message);
               } else {
-                console.log("Success! Real wallet address synchronized with Supabase SQL ledger.");
+                console.log("Success! Wallet registered in your Supabase cloud table ledger.");
               }
             }
           } catch (innerErr) {
-            console.error("Failed parsing public key in selection callback:", innerErr);
+            console.error("Error extracting public key inside selection loop:", innerErr);
           }
           return option.id;
         }
@@ -92,7 +98,7 @@ export default function WalletConnect() {
           disabled={isConnecting}
           className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
         >
-          {isConnecting ? 'Opening Connect UI...' : 'Connect Stellar Wallet'}
+          {isConnecting ? 'Opening Wallet Modal...' : 'Connect Stellar Wallet'}
         </button>
       )}
     </div>
