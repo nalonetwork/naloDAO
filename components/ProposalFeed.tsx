@@ -22,6 +22,7 @@ interface Proposal {
 export default function ProposalFeed() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [votingStatus, setVotingStatus] = useState<{ [key: string]: boolean }>({});
 
   // Fetch proposals directly from your Supabase SQL Table
   const fetchProposals = async () => {
@@ -38,6 +39,29 @@ export default function ProposalFeed() {
       console.error("Failed fetching active DAO proposals ledger:", err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Upgraded Voting Executor: Updates the shared database parameters in real time
+  const castVote = async (proposalId: string, currentVotes: number, voteType: 'yes_votes' | 'no_votes') => {
+    if (votingStatus[proposalId]) return; // Stop accidental double-clicks instantly
+    
+    setVotingStatus(prev => ({ ...prev, [proposalId]: true }));
+    try {
+      const { error } = await supabase
+        .from('proposals')
+        .update({ [voteType]: currentVotes + 1 })
+        .eq('id', proposalId);
+
+      if (error) throw error;
+      
+      // Refresh local display arrays smoothly
+      await fetchProposals();
+    } catch (err) {
+      console.error("Consensus update execution failure:", err);
+      alert("Database mutation rejected. Check your connection parameters.");
+    } finally {
+      setVotingStatus(prev => ({ ...prev, [proposalId]: false }));
     }
   };
 
@@ -75,6 +99,7 @@ export default function ProposalFeed() {
       </div>
 
       {proposals.map((proposal) => {
+        // --- YOUR DYNAMIC METRICS MAPPING BLOCK ---
         const totalVotes = proposal.yes_votes + proposal.no_votes;
         const yesPercent = totalVotes > 0 ? Math.round((proposal.yes_votes / totalVotes) * 100) : 0;
         const noPercent = totalVotes > 0 ? Math.round((proposal.no_votes / totalVotes) * 100) : 0;
@@ -87,7 +112,7 @@ export default function ProposalFeed() {
         return (
           <div 
             key={proposal.id} 
-            className="bg-slate-900/60 border border-slate-800/80 p-6 rounded-2xl shadow-md backdrop-blur-sm hover:border-slate-700 transition duration-200"
+            className="bg-slate-900/60 border border-slate-800/80 p-6 rounded-2xl shadow-md backdrop-blur-sm hover:border-slate-700 transition duration-200 text-left"
           >
             <div className="flex items-start justify-between gap-4 mb-2">
               <h4 className="text-md font-semibold text-white tracking-wide">{proposal.title}</h4>
@@ -100,16 +125,22 @@ export default function ProposalFeed() {
               {proposal.description}
             </p>
 
-            {/* Voting Progress bar visual grid */}
+            {/* Voting Progress Gauge Visualizer */}
             <div className="space-y-2 border-t border-slate-800/60 pt-4">
               <div className="flex justify-between text-[11px] font-mono text-slate-400">
-                <span>Metrics: {totalVotes} XLM Weighted Tokens Cast</span>
+                <span>Metrics: {totalVotes} Consensus Parameters Cast</span>
                 <span>Voting Concludes: {formattedDate}</span>
               </div>
               
               <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden flex border border-slate-800/40">
-                <div style={{ width: `${yesPercent || 50}%` }} className="bg-emerald-500 h-full transition-all duration-300" />
-                <div style={{ width: `${noPercent || 50}%` }} className="bg-red-500 h-full transition-all duration-300" />
+                {totalVotes === 0 ? (
+                  <div className="bg-slate-800 w-full h-full" /> // Neutral baseline state if zero votes are logged
+                ) : (
+                  <>
+                    <div style={{ width: `${yesPercent}%` }} className="bg-emerald-500 h-full transition-all duration-300" />
+                    <div style={{ width: `${noPercent}%` }} className="bg-red-500 h-full transition-all duration-300" />
+                  </>
+                )}
               </div>
 
               <div className="flex justify-between items-center text-xs font-mono pt-1">
@@ -117,6 +148,25 @@ export default function ProposalFeed() {
                 <span className="text-red-400 font-bold">No: {proposal.no_votes} ({noPercent}%)</span>
               </div>
             </div>
+
+            {/* INTERACTIVE VOTING BUTTON ACTIONS */}
+            <div className="flex gap-2 pt-4 mt-2 border-t border-slate-800/30">
+              <button
+                disabled={votingStatus[proposal.id]}
+                onClick={() => castVote(proposal.id, proposal.yes_votes, 'yes_votes')}
+                className="flex-1 bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 hover:text-slate-950 text-emerald-400 text-xs font-mono font-bold py-2.5 rounded-xl transition duration-150 active:scale-[0.98] disabled:opacity-50"
+              >
+                {votingStatus[proposal.id] ? 'Logging...' : 'Vote YES 👍'}
+              </button>
+              <button
+                disabled={votingStatus[proposal.id]}
+                onClick={() => castVote(proposal.id, proposal.no_votes, 'no_votes')}
+                className="flex-1 bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:text-white text-red-400 text-xs font-mono font-bold py-2.5 rounded-xl transition duration-150 active:scale-[0.98] disabled:opacity-50"
+              >
+                {votingStatus[proposal.id] ? 'Logging...' : 'Vote NO 👎'}
+              </button>
+            </div>
+
           </div>
         );
       })}
