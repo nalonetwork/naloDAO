@@ -6,10 +6,11 @@ import ProposalForm from '@/components/ProposalForm';
 import ProposalFeed from '@/components/ProposalFeed';
 import MerchantRegister from '@/components/MerchantRegister';
 import SacredMarketplace from '@/components/SacredMarketplace';
+import CrowdfundPortal from '@/components/CrowdfundPortal';
 
 export default function Home() {
   const [showVision, setShowVision] = useState(false);
-  const [activeTab, setActiveTab] = useState<'governance' | 'marketplace'>('governance');
+  const [activeTab, setActiveTab] = useState<'governance' | 'marketplace' | 'crowdfund'>('governance');
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center p-6 sm:p-12 selection:bg-emerald-500/30 selection:text-emerald-300">
@@ -64,10 +65,10 @@ export default function Home() {
       )}
 
       {/* --- ECOSYSTEM NAVIGATION TABS --- */}
-      <div className="flex bg-slate-900/80 p-1.5 border border-slate-800 rounded-xl mb-12 shadow-inner">
+      <div className="flex bg-slate-900/80 p-1.5 border border-slate-800 rounded-xl mb-12 shadow-inner flex-wrap justify-center gap-1">
         <button
           onClick={() => setActiveTab('governance')}
-          className={`px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
+          className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
             activeTab === 'governance'
               ? 'bg-emerald-500 text-slate-950 shadow'
               : 'text-slate-400 hover:text-white'
@@ -77,7 +78,7 @@ export default function Home() {
         </button>
         <button
           onClick={() => setActiveTab('marketplace')}
-          className={`px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
+          className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
             activeTab === 'marketplace'
               ? 'bg-emerald-500 text-slate-950 shadow'
               : 'text-slate-400 hover:text-white'
@@ -85,12 +86,22 @@ export default function Home() {
         >
           🛒 Producer Marketplace
         </button>
+        <button
+          onClick={() => setActiveTab('crowdfund')}
+          className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
+            activeTab === 'crowdfund'
+              ? 'bg-emerald-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          🌱 Fair-Share Crowdfund
+        </button>
       </div>
 
       {/* --- DYNAMIC WORKSPACE PANEL LAYOUTS --- */}
       <div className="w-full max-w-5xl border-t border-slate-900 pt-8">
         
-        {/* VIEW 1: GOVERNANCE VIEW (FORM + FEED) */}
+        {/* VIEW 1: GOVERNANCE VIEW */}
         {activeTab === 'governance' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <div className="space-y-4">
@@ -110,7 +121,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* VIEW 2: COMPLIANT SACRED MARKETPLACE VIEW (REGISTRATION + SACRED STORY FEED) */}
+        {/* VIEW 2: COMPLIANT MARKETPLACE VIEW */}
         {activeTab === 'marketplace' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <div className="space-y-4">
@@ -127,6 +138,17 @@ export default function Home() {
               </div>
               <SacredMarketplace />
             </div>
+          </div>
+        )}
+
+        {/* VIEW 3: CROWDFUNDING MUTUAL AID PORTAL */}
+        {activeTab === 'crowdfund' && (
+          <div className="space-y-2">
+            <div className="text-center md:text-left px-2 mb-4">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">Bioregional Treasury</h3>
+              <p className="text-xs text-slate-400">Co-create and direct collaborative financial infrastructure allocations safely.</p>
+            </div>
+            <CrowdfundPortal />
           </div>
         )}
 
