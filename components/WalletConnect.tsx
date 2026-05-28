@@ -23,12 +23,17 @@ export default function WalletConnect() {
       const stellarSdk = await import('@stellar/stellar-sdk');
       const server = new stellarSdk.Horizon.Server("https://horizon.stellar.org");
       
-      const accountDetails = await server.loadAccount(address);
+      // Modern SDK compliant account retrieval call
+      const accountDetails: any = await server.loadAccount(address);
       
-      // Target string definition forced to lowercase for uniform comparison checks
       const circleIssuerKey = "GA5ZBLAMTP6F34IEU6CHH77WCQE75577VAFZOMZIBZ36EIKKAA5CTFHT".toLowerCase();
 
-      // Case-Insensitive Array Search Core
+      if (!accountDetails || !accountDetails.balances) {
+        setUsdcBalance('0.00');
+        return;
+      }
+
+      // Look for your active USDC balance values
       const targetAsset = accountDetails.balances.find((b: any) => {
         const hasUsdcCode = b.asset_code && b.asset_code.toUpperCase() === "USDC";
         const hasValidIssuer = b.asset_issuer && b.asset_issuer.toLowerCase() === circleIssuerKey;
@@ -39,7 +44,6 @@ export default function WalletConnect() {
         const parsedBalance = parseFloat(targetAsset.balance).toFixed(2);
         setUsdcBalance(parsedBalance);
       } else {
-        // Fallback: Check if the user holds USDC under a classic alternative trustline object format
         const alternateAsset = accountDetails.balances.find((b: any) => b.asset_code && b.asset_code.toUpperCase() === "USDC");
         if (alternateAsset && alternateAsset.balance) {
           setUsdcBalance(parseFloat(alternateAsset.balance).toFixed(2));
@@ -48,7 +52,8 @@ export default function WalletConnect() {
         }
       }
     } catch (err) {
-      console.warn("Horizon network ledger query rate-limited or account unfunded yet:", err);
+      console.warn("Horizon network ledger query fallback error:", err);
+      setUsdcBalance('0.00');
     }
   };
 
