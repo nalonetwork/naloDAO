@@ -7,13 +7,35 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+interface Merchant {
+  id: string | number;
+  business_name: string;
+  category: string;
+  description: string;
+  owner_wallet: string;
+  city: string;
+  country_code: string;
+  logo_url?: string;
+  banner_url?: string;
+  detailed_bio?: string;
+  physical_address?: string;
+  contact_email?: string;
+}
+
+interface SupplyLine {
+  buyer_wallet: string;
+  supplier_wallet: string;
+  relationship_details: string;
+  verified_ethic: string;
+}
+
 export default function SacredMarketplace() {
-  const [merchants, setMerchants] = useState<any[]>([]);
-  const [supplyLines, setSupplyLines] = useState<any[]>([]);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [supplyLines, setSupplyLines] = useState<SupplyLine[]>([]);
   const [checkoutAmounts, setCheckoutAmounts] = useState<{ [key: string]: string }>({});
   const [selectedEthicFilter, setSelectedEthicFilter] = useState<string>('All');
   
-  // Dynamic View Switcher state rule for profile view sub-routing 👇
+  // Dynamic View Switcher state rule for profile view sub-routing
   const [activeProfileId, setActiveProfileId] = useState<string | number | null>(null);
 
   const loadEcosystemData = async () => {
@@ -103,7 +125,7 @@ export default function SacredMarketplace() {
         <div className="px-8 pb-8 relative -mt-20 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <img 
-              src={currentProfile.logo_url} 
+              src={currentProfile.logo_url || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=100&q=80'} 
               alt="Brand Logo" 
               className="w-28 h-28 rounded-2xl object-cover border-4 border-slate-950 bg-slate-900 shadow-xl relative z-10"
             />
@@ -128,7 +150,7 @@ export default function SacredMarketplace() {
               </p>
             </div>
 
-            {/* PREMIUM TRADITIONAL CHECKOUT PANEL */}
+            {/* FIXED: PREMIUM UN-BUNCHED TRADITIONAL CHECKOUT PANEL */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl h-fit shadow-2xl overflow-hidden shrink-0">
               {/* Checkout Header */}
               <div className="bg-slate-950 p-6 border-b border-slate-800/60">
@@ -154,17 +176,20 @@ export default function SacredMarketplace() {
                   </div>
                 </div>
 
-                {/* Big Un-Bunched Amount Input Form Field */}
+                {/* Big Input Form Field */}
                 <div className="space-y-2">
                   <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 ml-1 block font-bold">
                     Enter Transfer Amount
                   </label>
                   <div className="flex items-center justify-between bg-slate-950 px-5 py-4 rounded-2xl border border-slate-800 focus-within:border-emerald-500/60 transition group">
+                    {/* FIXED: Linked to checkoutAmounts state variable instead of document ID lookups */}
                     <input
                       type="number"
                       step="0.01"
                       placeholder="0.00"
                       id={`profile-pay-${currentProfile.id}`}
+                      value={checkoutAmounts[currentProfile.id] || ''}
+                      onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
                       className="w-full bg-transparent text-white text-2xl font-mono focus:outline-none placeholder-slate-800 tracking-tight"
                     />
                     <span className="text-sm font-mono font-black text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl ml-3 shadow-sm select-none">
@@ -176,10 +201,7 @@ export default function SacredMarketplace() {
                 {/* Execution Dispatch Button */}
                 <div className="pt-2">
                   <button
-                    onClick={() => {
-                      const el = document.getElementById(`profile-pay-${currentProfile.id}`) as HTMLInputElement;
-                      handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), el?.value);
-                    }}
+                    onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
                     className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-4 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20"
                   >
                     Authorize & Pay
@@ -222,8 +244,8 @@ export default function SacredMarketplace() {
 
           {/* Regional Meta Flags */}
           <div className="flex flex-wrap gap-6 text-[10px] font-mono text-slate-600 pt-4 border-t border-slate-800/40">
-            <span>Registry Location: {currentProfile.physical_address}</span>
-            <span>Contact Core: {currentProfile.contact_email}</span>
+            <span>Registry Location: {currentProfile.physical_address || 'Bioregional Zone 1'}</span>
+            <span>Contact Core: {currentProfile.contact_email || 'steward@nalo.network'}</span>
             <span>Region Flag: {currentProfile.city}, {currentProfile.country_code}</span>
           </div>
 
@@ -232,7 +254,7 @@ export default function SacredMarketplace() {
     );
   }
 
-  // --- STANDARD GRID CATALOG VIEW VIEW ---
+  // --- STANDARD GRID CATALOG VIEW ---
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6 mt-4">
       {/* Ethic Filter Bar */}
@@ -271,7 +293,6 @@ export default function SacredMarketplace() {
               {/* Header Info */}
               <div className="flex justify-between items-start gap-4">
                 <div className="flex gap-4">
-                  {/* Small Profile Thumbnail Added to Grid View Cards 👇 */}
                   <img 
                     src={merchant.logo_url || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=100&q=80'} 
                     alt="Logo" 
@@ -279,7 +300,6 @@ export default function SacredMarketplace() {
                   />
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      {/* FIXED: Business Name is now completely interactive, triggering state profile subview 👇 */}
                       <h4 
                         onClick={() => setActiveProfileId(merchant.id)}
                         className="text-md font-bold text-white hover:text-emerald-400 cursor-pointer transition underline decoration-transparent hover:decoration-emerald-500/40 underline-offset-4"
@@ -305,7 +325,7 @@ export default function SacredMarketplace() {
                   />
                   <span className="text-[10px] font-mono text-slate-500 mr-1">USDC</span>
                   <button
-                    onClick={() => handleSacredPayment(merchant.owner_wallet, merchant.id)}
+                    onClick={() => handleSacredPayment(merchant.owner_wallet, merchant.id.toString())}
                     className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg transition"
                   >
                     Pay
