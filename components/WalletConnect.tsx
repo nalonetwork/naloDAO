@@ -9,14 +9,45 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function WalletConnect() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [usdcBalance, setUsdcBalance] = useState<string>('0.00');
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null); // Reference hook to securely halt background loop tracks
-  const kitInstanceRef = useRef<any>(null); // Retain active memory handle of the compiled SDK class object
+  const intervalRef = useRef<NodeJS.Timeout | null>(null); 
+  const balanceIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const kitInstanceRef = useRef<any>(null); 
+
+  // Pulls the active live Circle USDC balance from the public network ledger
+  const fetchLiveUSDCBalance = async (address: string) => {
+    try {
+      const stellarSdk = await import('@stellar/stellar-sdk');
+      const server = new stellarSdk.Horizon.Server("https://horizon.stellar.org");
+      
+      const accountDetails = await server.loadAccount(address);
+      
+      // Look explicitly for Circle's official verified USDC asset issuer identity parameters
+      const targetAsset = accountDetails.balances.find(
+        (b: any) => b.asset_code === "USDC" && 
+                    b.asset_issuer === "GA5ZBLAMTP6F34IEU6CHH77WCQE75577VAFZOMZIBZ36EIKKAA5CTFHT"
+      );
+
+      if (targetAsset) {
+        // Format the balance to two decimal spots for clean presentation
+        const parsedBalance = parseFloat(targetAsset.balance).toFixed(2);
+        setUsdcBalance(parsedBalance);
+      } else {
+        setUsdcBalance('0.00'); // Returns 0.00 if user hasn't added the USDC trustline yet
+      }
+    } catch (err) {
+      console.warn("Horizon network ledger query rate-limited or account unfunded yet:", err);
+    }
+  };
 
   const saveAuthenticatedSession = async (address: string) => {
     setWalletAddress(address);
     localStorage.setItem('nalo_wallet_address', address);
+    
+    // Trigger an immediate balance check the moment they connect
+    fetchLiveUSDCBalance(address);
 
     const { error: dbError } = await supabase
       .from('users')
@@ -29,6 +60,12 @@ export default function WalletConnect() {
     const savedAddress = localStorage.getItem('nalo_wallet_address');
     if (savedAddress) {
       setWalletAddress(savedAddress);
+      fetchLiveUSDCBalance(savedAddress);
+
+      // Set up a quiet background thread loop to update their balance every 10 seconds
+      balanceIntervalRef.current = setInterval(() => {
+        fetchLiveUSDCBalance(savedAddress);
+      }, 10000);
     }
 
     const loadAndInjectModalButton = async () => {
@@ -51,7 +88,6 @@ export default function WalletConnect() {
           });
         } catch (e) {}
 
-        // Save reference handle to the kit object so we can trigger methods on it later
         kitInstanceRef.current = Kit;
 
         if (containerRef.current) {
@@ -59,7 +95,6 @@ export default function WalletConnect() {
           Kit.createButton(containerRef.current);
         }
 
-        // Active lookup scanner connection loop
         intervalRef.current = setInterval(async () => {
           try {
             const session = await Kit.getAddress();
@@ -68,10 +103,13 @@ export default function WalletConnect() {
             if (address && address.startsWith('G')) {
               saveAuthenticatedSession(address);
               if (intervalRef.current) clearInterval(intervalRef.current);
+              
+              // Start the balance background loop thread for newly connected profiles
+              balanceIntervalRef.current = setInterval(() => {
+                fetchLiveUSDCBalance(address);
+              }, 10000);
             }
-          } catch (e) {
-            // Awaiting user selection interactions silently
-          }
+          } catch (e) {}
         }, 1500);
 
       } catch (err) {
@@ -81,33 +119,25 @@ export default function WalletConnect() {
 
     loadAndInjectModalButton();
 
-    // Cleanup loop tracking state on unmount
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (balanceIntervalRef.current) clearInterval(balanceIntervalRef.current);
     };
   }, []);
 
   const handleDisconnect = async () => {
-    // 1. Permanently terminate our scanning loop thread first to prevent background checks
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (balanceIntervalRef.current) clearInterval(balanceIntervalRef.current);
 
-    // 2. Clear out the library instance memory cache directly via its native destructor API
     try {
       if (kitInstanceRef.current && kitInstanceRef.current.disconnect) {
         await kitInstanceRef.current.disconnect();
       }
-    } catch (err) {
-      console.warn("Library cache structure already cleared:", err);
-    }
+    } catch (err) {}
 
-    // 3. Purge the application hard disk storage and front-end states
     setWalletAddress(null);
+    setUsdcBalance('0.00');
     localStorage.removeItem('nalo_wallet_address');
-
-    // 4. Force state tracking refresh to wipe lingering background instances clean
     window.location.reload();
   };
 
@@ -115,24 +145,34 @@ export default function WalletConnect() {
     <div className="flex flex-col items-center justify-center">
       {walletAddress ? (
         <div className="flex items-center gap-4 bg-slate-900 border border-emerald-500/20 pl-4 pr-3 py-2 rounded-2xl shadow-2xl backdrop-blur-md">
+          
+          {/* Real-time Balance Display Tracker */}
+          <div className="flex flex-col items-end border-r border-slate-800 pr-4 text-right">
+            <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-bold">Liquid Balance</span>
+            <span className="text-sm font-bold font-mono text-white flex items-center gap-1">
+              <span className="text-xs text-emerald-400 font-medium">$</span>
+              {usdcBalance}
+              <span className="text-[10px] text-slate-400 font-medium tracking-wide ml-0.5">USDC</span>
+            </span>
+          </div>
+
+          {/* Connection Identity Info */}
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <div className="flex flex-col items-start text-left">
-              <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold">
-                Passport Verified
-              </span>
+              <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold">Passport Verified</span>
               <span className="text-xs text-emerald-400 font-mono tracking-wider">
-                {walletAddress.slice(0, 6)}...{walletAddress.slice(-6)}
+                {walletAddress.slice(0, 5)}...{walletAddress.slice(-5)}
               </span>
             </div>
           </div>
 
           <button 
             onClick={handleDisconnect}
-            className="bg-slate-950 hover:bg-red-500 hover:text-white border border-slate-800 hover:border-red-500 text-slate-400 text-xs font-mono px-3 py-2 rounded-xl transition-all duration-200 active:scale-95 group flex items-center gap-1"
+            className="bg-slate-950 hover:bg-red-500 hover:text-white border border-slate-800 hover:border-red-500 text-slate-400 text-xs font-mono px-3 py-2 rounded-xl transition duration-200 active:scale-95 group flex items-center gap-1"
           >
             <span>Disconnect</span>
             <span className="text-[10px] opacity-60 group-hover:opacity-100">✕</span>
