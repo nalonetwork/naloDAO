@@ -34,8 +34,6 @@ export default function SacredMarketplace() {
   const [supplyLines, setSupplyLines] = useState<SupplyLine[]>([]);
   const [checkoutAmounts, setCheckoutAmounts] = useState<{ [key: string]: string }>({});
   const [selectedEthicFilter, setSelectedEthicFilter] = useState<string>('All');
-  
-  // Dynamic View Switcher state rule for profile view sub-routing
   const [activeProfileId, setActiveProfileId] = useState<string | number | null>(null);
 
   const loadEcosystemData = async () => {
@@ -96,154 +94,167 @@ export default function SacredMarketplace() {
     }
   };
 
-  // Find targeted profile data object if sub-page view state evaluates active
   const currentProfile = merchants.find(m => m.id === activeProfileId);
 
-  // --- DYNAMIC SUB-VIEW PROFILE VIEW SCREEN (RENDERED WHEN A PARTNER IS SELECTED) ---
+  // --- DYNAMIC PROFILE VIEW ---
   if (activeProfileId && currentProfile) {
     const profileConnections = supplyLines.filter(line => line.buyer_wallet === currentProfile.owner_wallet);
 
     return (
-      <div className="w-full max-w-4xl mx-auto space-y-8 mt-4 bg-slate-950/40 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md">
+      <div className="w-full max-w-5xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4">
         
-        {/* Banner Asset Box */}
-        <div className="h-64 w-full relative bg-slate-900">
+        {/* Banner */}
+        <div className="h-48 sm:h-64 w-full relative bg-slate-900">
           <img 
             src={currentProfile.banner_url || 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&w=1200&q=80'} 
             alt="Registry Node Banner"
-            className="w-full h-full object-cover opacity-60"
+            className="w-full h-full object-cover opacity-50"
           />
           <button 
             onClick={() => setActiveProfileId(null)}
-            className="absolute top-6 left-6 px-4 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest text-slate-400 hover:text-white transition"
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 px-4 py-2 bg-slate-950/90 border border-slate-800 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 hover:text-white transition z-20"
           >
-            ← Return to Marketplace
+            ← Back to Network
           </button>
         </div>
 
-        {/* Brand Information Frame */}
-        <div className="px-8 pb-8 relative -mt-20 space-y-6">
+        {/* Profile Content Container */}
+        <div className="p-4 sm:p-8 relative -mt-16 space-y-8">
+          
+          {/* Brand Info Bar */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <img 
-              src={currentProfile.logo_url || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=100&q=80'} 
-              alt="Brand Logo" 
-              className="w-28 h-28 rounded-2xl object-cover border-4 border-slate-950 bg-slate-900 shadow-xl relative z-10"
-            />
-            <span className="text-[10px] tracking-wider uppercase font-mono px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 sm:mb-2 align-self-start sm:align-self-auto">
+            <div className="flex items-end gap-4">
+              <img 
+                src={currentProfile.logo_url || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=100&q=80'} 
+                alt="Brand Logo" 
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-slate-950 bg-slate-900 shadow-xl relative z-10"
+              />
+              <div className="pb-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">{currentProfile.business_name}</h1>
+                <p className="text-[11px] font-mono text-slate-500 mt-2 break-all max-w-xs sm:max-w-lg">
+                  Node Handle: {currentProfile.owner_wallet}
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] tracking-wider uppercase font-mono px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 self-start sm:self-auto sm:mb-2">
               {currentProfile.category}
             </span>
           </div>
 
-          <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">{currentProfile.business_name}</h1>
-            <p className="text-sm font-mono text-slate-500 mt-1">Stellar Node: {currentProfile.owner_wallet}</p>
-          </div>
-
           <hr className="border-slate-800/60" />
 
-          {/* Deep Use-Case Narrative Text Block */}
-          <div className="grid md:grid-cols-3 gap-8 pt-2">
-            <div className="md:col-span-2 space-y-4">
-              <h3 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">Stewardship Metrology Statement</h3>
-              <p className="text-sm text-slate-300 leading-relaxed text-justify whitespace-pre-line font-serif italic">
-                {currentProfile.detailed_bio || currentProfile.description}
-              </p>
-            </div>
-
-            {/* FIXED: PREMIUM UN-BUNCHED TRADITIONAL CHECKOUT PANEL */}
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl h-fit shadow-2xl overflow-hidden shrink-0">
-              {/* Checkout Header */}
-              <div className="bg-slate-950 p-6 border-b border-slate-800/60">
-                <h4 className="text-xs uppercase font-mono tracking-[0.2em] text-emerald-400 font-black">Secure Checkout</h4>
-                <p className="text-[11px] text-slate-400 mt-1 font-serif italic">Non-custodial settlement loop via Stellar Horizon Network.</p>
+          {/* TWO-COLUMN GRID SYSTEM TO FIX THE SQUISHING */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left Side: Information & Bio (7 Columns) */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="space-y-3">
+                <h3 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">Stewardship Metrology Statement</h3>
+                <p className="text-sm text-slate-300 leading-relaxed text-left whitespace-pre-line font-serif italic">
+                  {currentProfile.detailed_bio || currentProfile.description}
+                </p>
               </div>
 
-              <div className="p-6 space-y-6">
-                {/* Summary Line Items */}
-                <div className="space-y-3 bg-slate-950/40 p-4 rounded-xl border border-slate-800/40 text-xs font-mono">
-                  <div className="flex justify-between items-center text-slate-500">
-                    <span>Allocation Item:</span>
-                    <span className="text-white font-medium text-right max-w-[150px] truncate">{currentProfile.category}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-500">
-                    <span>Network Routing:</span>
-                    <span className="text-slate-400 text-[10px]">{currentProfile.owner_wallet.slice(0, 6)}...{currentProfile.owner_wallet.slice(-4)}</span>
-                  </div>
-                  <hr className="border-slate-800/60 my-2" />
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-slate-400 text-[10px] uppercase tracking-wider font-bold">Currency Axis:</span>
-                    <span className="text-sm font-bold text-white tracking-tight">Stellar Asset Bridge</span>
-                  </div>
+              {/* Provenance Connections Loop */}
+              {profileConnections.length > 0 && (
+                <div className="bg-slate-900/40 border border-slate-800/60 p-5 rounded-2xl space-y-3">
+                  <h5 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold">Verified Ecological Provenance Loop:</h5>
+                  {profileConnections.map((line: any, idx: number) => {
+                    const supplier = merchants.find(m => m.owner_wallet === line.supplier_wallet);
+                    return (
+                      <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800/40 text-xs">
+                        <div className="text-slate-300">
+                          <span className="text-emerald-400 mr-1.5">↳</span>
+                          <span>Sourcing inputs from:</span>
+                          <strong 
+                            className="text-white ml-1 underline cursor-pointer hover:text-emerald-400"
+                            onClick={() => supplier && setActiveProfileId(supplier.id)}
+                          >
+                            {supplier ? supplier.business_name : 'Registry Partner'}
+                          </strong>
+                        </div>
+                        <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded self-start sm:self-auto">
+                          {line.verified_ethic}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-
-                {/* Big Input Form Field */}
-                <div className="space-y-2">
-                  <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 ml-1 block font-bold">
-                    Enter Transfer Amount
-                  </label>
-                  <div className="flex items-center justify-between bg-slate-950 px-5 py-4 rounded-2xl border border-slate-800 focus-within:border-emerald-500/60 transition group">
-                    {/* FIXED: Linked to checkoutAmounts state variable instead of document ID lookups */}
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      id={`profile-pay-${currentProfile.id}`}
-                      value={checkoutAmounts[currentProfile.id] || ''}
-                      onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
-                      className="w-full bg-transparent text-white text-2xl font-mono focus:outline-none placeholder-slate-800 tracking-tight"
-                    />
-                    <span className="text-sm font-mono font-black text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl ml-3 shadow-sm select-none">
-                      USDC
-                    </span>
-                  </div>
-                </div>
-
-                {/* Execution Dispatch Button */}
-                <div className="pt-2">
-                  <button
-                    onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-4 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20"
-                  >
-                    Authorize & Pay
-                  </button>
-                  <div className="text-center mt-3 flex items-center justify-center gap-1.5 text-[9px] font-mono text-slate-600">
-                    <span>🔒 Encrypted protocol signature</span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
-          </div>
-          
 
-          {/* Connected Ecological Supply Chain Track Box */}
-          {profileConnections.length > 0 && (
-            <div className="bg-slate-950/60 border border-slate-800/40 p-5 rounded-2xl space-y-3">
-              <h5 className="text-[10px] uppercase font-mono tracking-widest text-slate-400 font-bold">Verified Ecological Provenance Loop:</h5>
-              {profileConnections.map((line: any, idx: number) => {
-                const supplier = merchants.find(m => m.owner_wallet === line.supplier_wallet);
-                return (
-                  <div key={idx} className="flex items-center justify-between gap-4 text-xs bg-slate-900/40 p-3 rounded-xl border border-slate-800/20">
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <span className="text-emerald-400">↳</span>
-                      <span>Sourcing raw processing inputs from</span>
-                      <strong 
-                        className="text-white font-bold underline cursor-pointer hover:text-emerald-400"
-                        onClick={() => supplier && setActiveProfileId(supplier.id)}
-                      >
-                        {supplier ? supplier.business_name : 'Registry Partner'}
-                      </strong>
+            {/* Right Side: High-End Checkout Panel (5 Columns) */}
+            <div className="lg:col-span-5 w-full">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
+                
+                {/* Checkout Header */}
+                <div className="bg-slate-950 p-5 border-b border-slate-800/60">
+                  <h4 className="text-xs uppercase font-mono tracking-[0.2em] text-emerald-400 font-black">Secure Checkout</h4>
+                  <p className="text-[11px] text-slate-400 mt-1 font-serif italic">Non-custodial settlement via Stellar Network.</p>
+                </div>
+
+                <div className="p-5 space-y-5">
+                  {/* Summary Invoice Details */}
+                  <div className="space-y-2.5 bg-slate-950/60 p-4 rounded-xl border border-slate-800/40 text-xs font-mono">
+                    <div className="flex justify-between items-center text-slate-400 gap-2">
+                      <span className="shrink-0">Category:</span>
+                      <span className="text-white truncate max-w-[180px] text-right">{currentProfile.category}</span>
                     </div>
-                    <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">
-                      {line.verified_ethic}
-                    </span>
+                    <div className="flex justify-between items-center text-slate-400 gap-2">
+                      <span className="shrink-0">Routing:</span>
+                      <span className="text-slate-300 text-[10px] break-all text-right">
+                        {currentProfile.owner_wallet.slice(0, 6)}...{currentProfile.owner_wallet.slice(-4)}
+                      </span>
+                    </div>
+                    <hr className="border-slate-800/40 my-1" />
+                    <div className="flex justify-between items-center text-slate-400">
+                      <span>Network Axis:</span>
+                      <span className="text-emerald-400 text-[11px] font-bold">Stellar Mainnet</span>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
 
-          {/* Regional Meta Flags */}
-          <div className="flex flex-wrap gap-6 text-[10px] font-mono text-slate-600 pt-4 border-t border-slate-800/40">
+                  {/* Clean Amount Input Field */}
+                  <div className="space-y-2">
+                    <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold">
+                      Enter Transfer Amount
+                    </label>
+                    <div className="flex items-center bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition">
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        id={`profile-pay-${currentProfile.id}`}
+                        value={checkoutAmounts[currentProfile.id] || ''}
+                        onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
+                        className="w-full bg-transparent text-white text-xl font-mono focus:outline-none placeholder-slate-800 min-w-0"
+                      />
+                      <span className="text-xs font-mono font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg ml-2 shrink-0 select-none">
+                        USDC
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Dispatch Button */}
+                  <div className="pt-1">
+                    <button
+                      onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
+                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-3.5 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10"
+                    >
+                      Authorize & Pay
+                    </button>
+                    <p className="text-center text-[9px] font-mono text-slate-600 mt-2.5">
+                      🔒 Secured via cryptographic ledger signature
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          {/* Footer Metadata */}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 text-[10px] font-mono text-slate-500 pt-4 border-t border-slate-800/40">
             <span>Registry Location: {currentProfile.physical_address || 'Bioregional Zone 1'}</span>
             <span>Contact Core: {currentProfile.contact_email || 'steward@nalo.network'}</span>
             <span>Region Flag: {currentProfile.city}, {currentProfile.country_code}</span>
