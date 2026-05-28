@@ -16,35 +16,40 @@ export default function WalletConnect() {
   const balanceIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const kitInstanceRef = useRef<any>(null); 
 
- // Pulls the active live Circle USDC balance from the public network ledger
+ // Pulls the active live Circle USDC balance directly from the raw Horizon JSON endpoint
   const fetchLiveUSDCBalance = async (address: string) => {
     if (!address) return;
     try {
-      const stellarSdk = await import('@stellar/stellar-sdk');
-      const server = new stellarSdk.Horizon.Server("https://horizon.stellar.org");
+      // 1. Fetch the raw, unmasked JSON account details directly from the public live ledger endpoint
+      const response = await fetch(`https://horizon.stellar.org/accounts/${address}?cb=${Date.now()}`);
       
-      // Modern SDK compliant account retrieval call
-      const accountDetails: any = await server.loadAccount(address);
-      
-      const circleIssuerKey = "GA5ZBLAMTP6F34IEU6CHH77WCQE75577VAFZOMZIBZ36EIKKAA5CTFHT".toLowerCase();
+      if (!response.ok) {
+        throw new Error(`Horizon API responded with status: ${response.status}`);
+      }
 
-      if (!accountDetails || !accountDetails.balances) {
+      const accountData = await response.json();
+      
+      if (!accountData || !accountData.balances) {
         setUsdcBalance('0.00');
         return;
       }
 
-      // Look for your active USDC balance values
-      const targetAsset = accountDetails.balances.find((b: any) => {
+      const circleIssuerKey = "GA5ZBLAMTP6F34IEU6CHH77WCQE75577VAFZOMZIBZ36EIKKAA5CTFHT".toLowerCase();
+
+      // 2. Scan the raw JSON balances array using a bulletproof string check
+      const targetAsset = accountData.balances.find((b: any) => {
         const hasUsdcCode = b.asset_code && b.asset_code.toUpperCase() === "USDC";
         const hasValidIssuer = b.asset_issuer && b.asset_issuer.toLowerCase() === circleIssuerKey;
         return hasUsdcCode && hasValidIssuer;
       });
 
+      // 3. If found, parse and show the true ledger balance instantly
       if (targetAsset && targetAsset.balance) {
         const parsedBalance = parseFloat(targetAsset.balance).toFixed(2);
         setUsdcBalance(parsedBalance);
       } else {
-        const alternateAsset = accountDetails.balances.find((b: any) => b.asset_code && b.asset_code.toUpperCase() === "USDC");
+        // Fallback: Check for any open alternative USDC parameters
+        const alternateAsset = accountData.balances.find((b: any) => b.asset_code && b.asset_code.toUpperCase() === "USDC");
         if (alternateAsset && alternateAsset.balance) {
           setUsdcBalance(parseFloat(alternateAsset.balance).toFixed(2));
         } else {
@@ -52,7 +57,7 @@ export default function WalletConnect() {
         }
       }
     } catch (err) {
-      console.warn("Horizon network ledger query fallback error:", err);
+      console.warn("Direct Horizon ledger fetch fallback:", err);
       setUsdcBalance('0.00');
     }
   };
