@@ -128,33 +128,70 @@ export default function SacredMarketplace() {
               </p>
             </div>
 
-            {/* Instant Direct Payment Module on Personal Sub-Page View */}
-            <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl h-fit space-y-4 shadow-inner">
-              <h4 className="text-xs uppercase font-mono tracking-widest text-slate-400 font-bold">Direct Resource Transfer</h4>
-              <p className="text-[11px] text-slate-500">Settle secure biological allocations with native, non-custodial USDC liquidity networks.</p>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800/60">
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    id={`profile-pay-${currentProfile.id}`}
-                    className="w-full bg-transparent text-white text-md font-mono focus:outline-none placeholder-slate-800"
-                  />
-                  <span className="text-xs font-mono text-slate-500">USDC</span>
+            {/* PREMIUM TRADITIONAL CHECKOUT PANEL */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl h-fit shadow-2xl overflow-hidden shrink-0">
+              {/* Checkout Header */}
+              <div className="bg-slate-950 p-6 border-b border-slate-800/60">
+                <h4 className="text-xs uppercase font-mono tracking-[0.2em] text-emerald-400 font-black">Secure Checkout</h4>
+                <p className="text-[11px] text-slate-400 mt-1 font-serif italic">Non-custodial settlement loop via Stellar Horizon Network.</p>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Summary Line Items */}
+                <div className="space-y-3 bg-slate-950/40 p-4 rounded-xl border border-slate-800/40 text-xs font-mono">
+                  <div className="flex justify-between items-center text-slate-500">
+                    <span>Allocation Item:</span>
+                    <span className="text-white font-medium text-right max-w-[150px] truncate">{currentProfile.category}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-500">
+                    <span>Network Routing:</span>
+                    <span className="text-slate-400 text-[10px]">{currentProfile.owner_wallet.slice(0, 6)}...{currentProfile.owner_wallet.slice(-4)}</span>
+                  </div>
+                  <hr className="border-slate-800/60 my-2" />
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-slate-400 text-[10px] uppercase tracking-wider font-bold">Currency Axis:</span>
+                    <span className="text-sm font-bold text-white tracking-tight">Stellar Asset Bridge</span>
+                  </div>
                 </div>
-                <button
-                  onClick={() => {
-                    const el = document.getElementById(`profile-pay-${currentProfile.id}`) as HTMLInputElement;
-                    handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), el?.value);
-                  }}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-3.5 rounded-xl transition shadow-lg"
-                >
-                  Execute Payment
-                </button>
+
+                {/* Big Un-Bunched Amount Input Form Field */}
+                <div className="space-y-2">
+                  <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 ml-1 block font-bold">
+                    Enter Transfer Amount
+                  </label>
+                  <div className="flex items-center justify-between bg-slate-950 px-5 py-4 rounded-2xl border border-slate-800 focus-within:border-emerald-500/60 transition group">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      id={`profile-pay-${currentProfile.id}`}
+                      className="w-full bg-transparent text-white text-2xl font-mono focus:outline-none placeholder-slate-800 tracking-tight"
+                    />
+                    <span className="text-sm font-mono font-black text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl ml-3 shadow-sm select-none">
+                      USDC
+                    </span>
+                  </div>
+                </div>
+
+                {/* Execution Dispatch Button */}
+                <div className="pt-2">
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById(`profile-pay-${currentProfile.id}`) as HTMLInputElement;
+                      handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), el?.value);
+                    }}
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-4 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20"
+                  >
+                    Authorize & Pay
+                  </button>
+                  <div className="text-center mt-3 flex items-center justify-center gap-1.5 text-[9px] font-mono text-slate-600">
+                    <span>🔒 Encrypted protocol signature</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          
 
           {/* Connected Ecological Supply Chain Track Box */}
           {profileConnections.length > 0 && (
