@@ -8,6 +8,8 @@ import MerchantRegister from '@/components/MerchantRegister';
 import SacredMarketplace from '@/components/SacredMarketplace';
 import CrowdfundPortal from '@/components/CrowdfundPortal';
 import GuildBoard from '@/components/GuildBoard';
+import MoneyGramBridge from '@/components/MoneyGramBridge';
+import StewardshipLeaderboard from '@/components/StewardshipLeaderboard';
 
 export default function Home() {
   const [showVision, setShowVision] = useState(false);
@@ -110,6 +112,7 @@ export default function Home() {
                 <p className="text-xs text-slate-400 font-light mt-0.5">Broadcast structural community initiatives directly to the public ledger.</p>
               </div>
               <ProposalForm />
+              <StewardshipLeaderboard />
             </div>
             <div className="space-y-4">
               <div className="text-center md:text-left px-2">
