@@ -10,6 +10,7 @@ import CrowdfundPortal from '@/components/CrowdfundPortal';
 import GuildBoard from '@/components/GuildBoard';
 import MoneyGramBridge from '@/components/MoneyGramBridge';
 import StewardshipLeaderboard from '@/components/StewardshipLeaderboard';
+import BioregionalStatsBar from '@/components/BioregionalStatsBar';
 
 export default function Home() {
   const [showVision, setShowVision] = useState(false);
@@ -57,6 +58,8 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      <BioregionalStatsBar />
 
       {/* --- WARM EXPANDABLE MANIFESTO PANEL --- */}
       {showVision && (
