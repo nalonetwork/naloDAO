@@ -143,7 +143,7 @@ export default function SacredMarketplace() {
 
           <hr className="border-slate-800/60" />
 
-          {/* MAIN BIOGRAPHY & PROVENANCE LOOPS (Full Width Top Row) */}
+          {/* MAIN BIOGRAPHY & PROVENANCE LOOPS */}
           <div className="space-y-6">
             <div className="space-y-3">
               <h3 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">Stewardship Metrology Statement</h3>
@@ -182,61 +182,66 @@ export default function SacredMarketplace() {
             )}
           </div>
 
-          {/* FIXED: HORIZONTAL CHEKOUT REGISTRY BAR across the bottom of the content container */}
+          {/* DYNAMIC, RESPONSIBLY FLEXIBLE HORIZONTAL CHECKOUT BAR */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
             
-            {/* Top tiny alert bar */}
-            <div className="bg-slate-950 px-6 py-2.5 border-b border-slate-800/60 flex justify-between items-center text-[10px] font-mono tracking-wider text-slate-500">
-              <span className="uppercase tracking-[0.15em] text-emerald-400 font-bold">Secure Settlement Core</span>
-              <span className="font-serif italic text-slate-400 hidden sm:inline">Non-custodial infrastructure loop via Stellar Asset Bridge</span>
+            {/* Top Alert Sub-Header */}
+            <div className="bg-slate-950 px-6 py-3 border-b border-slate-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 text-[10px] font-mono tracking-wider text-slate-500">
+              <span className="uppercase tracking-[0.15em] text-emerald-400 font-black">Secure Settlement Core</span>
+              <span className="font-serif italic text-slate-400">Non-custodial loop via Stellar Asset Bridge</span>
             </div>
 
-            {/* Main horizontal contents container */}
-            <div className="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            {/* Flexible Checkout Engine Grid Layout */}
+            <div className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               
-              {/* Box 1: Invoice Details Ledger (Left Column Area) */}
-              <div className="md:col-span-4 space-y-1 text-xs font-mono border-b md:border-b-0 md:border-r border-slate-800/80 pb-4 md:pb-0 md:pr-6">
-                <div className="flex justify-between items-center text-slate-400">
-                  <span>Allocation Category:</span>
-                  <span className="text-white font-bold">{currentProfile.category}</span>
+              {/* Left Column: Details (Stretches gracefully, handles text wrapping cleanly) */}
+              <div className="flex-1 min-w-0 space-y-1 text-xs font-mono">
+                <div className="flex items-center justify-between lg:justify-start gap-4 text-slate-400">
+                  <span className="w-24 shrink-0 text-slate-500">Allocation:</span>
+                  <span className="text-white font-bold truncate">{currentProfile.category}</span>
                 </div>
-                <div className="flex justify-between items-center text-slate-400">
-                  <span>Stellar Target Handle:</span>
-                  <span className="text-slate-300 font-bold">
-                    {currentProfile.owner_wallet.slice(0, 6)}...{currentProfile.owner_wallet.slice(-4)}
+                <div className="flex items-center justify-between lg:justify-start gap-4 text-slate-400">
+                  <span className="w-24 shrink-0 text-slate-500">Target Node:</span>
+                  <span className="text-slate-300 font-mono break-all sm:break-normal">
+                    {currentProfile.owner_wallet.slice(0, 8)}...{currentProfile.owner_wallet.slice(-8)}
                   </span>
                 </div>
               </div>
 
-              {/* Box 2: Open Input Allocation Terminal (Center Column Area) */}
-              <div className="md:col-span-5 space-y-2">
-                <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1">
-                  Enter Transfer Amount
-                </label>
-                <div className="flex items-center bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition">
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    id={`profile-pay-${currentProfile.id}`}
-                    value={checkoutAmounts[currentProfile.id] || ''}
-                    onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
-                    className="w-full bg-transparent text-white text-xl font-mono focus:outline-none placeholder-slate-800"
-                  />
-                  <span className="text-xs font-mono font-bold text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-lg ml-2 shrink-0 select-none">
-                    USDC
-                  </span>
+              {/* Middle/Right Columns Group wrapper for consistent input-to-button scaling */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 shrink-0 lg:max-w-xl w-full lg:w-auto">
+                
+                {/* Input Field Wrapper Container */}
+                <div className="space-y-1.5 flex-1 sm:w-64">
+                  <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1">
+                    Enter Amount
+                  </label>
+                  <div className="flex items-center bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition h-12">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      id={`profile-pay-${currentProfile.id}`}
+                      value={checkoutAmounts[currentProfile.id] || ''}
+                      onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
+                      className="w-full bg-transparent text-white text-md font-mono focus:outline-none placeholder-slate-800 min-w-0"
+                    />
+                    <span className="text-[10px] font-mono font-black text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg ml-2 select-none shrink-0">
+                      USDC
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Box 3: Execution CTA Node Button (Right Column Area) */}
-              <div className="md:col-span-3 w-full self-end md:self-center">
-                <button
-                  onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-4 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 hover:scale-[1.01] active:scale-[0.99]"
-                >
-                  Authorize & Pay
-                </button>
+                {/* Secure Button Container */}
+                <div className="sm:w-48 shrink-0">
+                  <button
+                    onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
+                    className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    Authorize & Pay
+                  </button>
+                </div>
+
               </div>
 
             </div>
