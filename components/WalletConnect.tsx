@@ -16,26 +16,36 @@ export default function WalletConnect() {
   const balanceIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const kitInstanceRef = useRef<any>(null); 
 
-  // Pulls the active live Circle USDC balance from the public network ledger
+ // Pulls the active live Circle USDC balance from the public network ledger
   const fetchLiveUSDCBalance = async (address: string) => {
+    if (!address) return;
     try {
       const stellarSdk = await import('@stellar/stellar-sdk');
       const server = new stellarSdk.Horizon.Server("https://horizon.stellar.org");
       
       const accountDetails = await server.loadAccount(address);
       
-      // Look explicitly for Circle's official verified USDC asset issuer identity parameters
-      const targetAsset = accountDetails.balances.find(
-        (b: any) => b.asset_code === "USDC" && 
-                    b.asset_issuer === "GA5ZBLAMTP6F34IEU6CHH77WCQE75577VAFZOMZIBZ36EIKKAA5CTFHT"
-      );
+      // Target string definition forced to lowercase for uniform comparison checks
+      const circleIssuerKey = "GA5ZBLAMTP6F34IEU6CHH77WCQE75577VAFZOMZIBZ36EIKKAA5CTFHT".toLowerCase();
 
-      if (targetAsset) {
-        // Format the balance to two decimal spots for clean presentation
+      // Case-Insensitive Array Search Core
+      const targetAsset = accountDetails.balances.find((b: any) => {
+        const hasUsdcCode = b.asset_code && b.asset_code.toUpperCase() === "USDC";
+        const hasValidIssuer = b.asset_issuer && b.asset_issuer.toLowerCase() === circleIssuerKey;
+        return hasUsdcCode && hasValidIssuer;
+      });
+
+      if (targetAsset && targetAsset.balance) {
         const parsedBalance = parseFloat(targetAsset.balance).toFixed(2);
         setUsdcBalance(parsedBalance);
       } else {
-        setUsdcBalance('0.00'); // Returns 0.00 if user hasn't added the USDC trustline yet
+        // Fallback: Check if the user holds USDC under a classic alternative trustline object format
+        const alternateAsset = accountDetails.balances.find((b: any) => b.asset_code && b.asset_code.toUpperCase() === "USDC");
+        if (alternateAsset && alternateAsset.balance) {
+          setUsdcBalance(parseFloat(alternateAsset.balance).toFixed(2));
+        } else {
+          setUsdcBalance('0.00');
+        }
       }
     } catch (err) {
       console.warn("Horizon network ledger query rate-limited or account unfunded yet:", err);
