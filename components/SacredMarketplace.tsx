@@ -182,39 +182,39 @@ export default function SacredMarketplace() {
             )}
           </div>
 
-          {/* DYNAMIC, RESPONSIBLY FLEXIBLE HORIZONTAL CHECKOUT BAR */}
+          {/* COMPONENT WIDTH DYNAMIC CHECKOUT BAR */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
             
-            {/* Top Alert Sub-Header */}
-            <div className="bg-slate-950 px-6 py-3 border-b border-slate-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 text-[10px] font-mono tracking-wider text-slate-500">
+            {/* Top Header */}
+            <div className="bg-slate-950 px-6 py-3 border-b border-slate-800/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-[10px] font-mono tracking-wider text-slate-500">
               <span className="uppercase tracking-[0.15em] text-emerald-400 font-black">Secure Settlement Core</span>
               <span className="font-serif italic text-slate-400">Non-custodial loop via Stellar Asset Bridge</span>
             </div>
 
-            {/* Flexible Checkout Engine Grid Layout */}
-            <div className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            {/* Completely Restructured Layout Grid Container */}
+            <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
               
-              {/* Left Column: Details (Stretches gracefully, handles text wrapping cleanly) */}
-              <div className="flex-1 min-w-0 space-y-1 text-xs font-mono">
-                <div className="flex items-center justify-between lg:justify-start gap-4 text-slate-400">
-                  <span className="w-24 shrink-0 text-slate-500">Allocation:</span>
+              {/* Left Column: Summary (Takes full width on tablet/mobile, 5-columns on desktop) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-1 lg:col-span-5 text-xs font-mono">
+                <div className="flex lg:items-center justify-between lg:justify-start gap-4 bg-slate-950/40 lg:bg-transparent p-3 lg:p-0 rounded-xl border border-slate-800/30 lg:border-none">
+                  <span className="w-20 shrink-0 text-slate-500">Allocation:</span>
                   <span className="text-white font-bold truncate">{currentProfile.category}</span>
                 </div>
-                <div className="flex items-center justify-between lg:justify-start gap-4 text-slate-400">
-                  <span className="w-24 shrink-0 text-slate-500">Target Node:</span>
-                  <span className="text-slate-300 font-mono break-all sm:break-normal">
+                <div className="flex lg:items-center justify-between lg:justify-start gap-4 bg-slate-950/40 lg:bg-transparent p-3 lg:p-0 rounded-xl border border-slate-800/30 lg:border-none">
+                  <span className="w-20 shrink-0 text-slate-500">Target Node:</span>
+                  <span className="text-slate-300 font-mono text-right lg:text-left break-all">
                     {currentProfile.owner_wallet.slice(0, 8)}...{currentProfile.owner_wallet.slice(-8)}
                   </span>
                 </div>
               </div>
 
-              {/* Middle/Right Columns Group wrapper for consistent input-to-button scaling */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 shrink-0 lg:max-w-xl w-full lg:w-auto">
+              {/* Right Columns Combo: Input + Action Button (7-columns on desktop, vertical stack on mobile) */}
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-12 gap-4 items-end w-full">
                 
-                {/* Input Field Wrapper Container */}
-                <div className="space-y-1.5 flex-1 sm:w-64">
+                {/* Numeric Input Core Terminal */}
+                <div className="sm:col-span-7 space-y-2">
                   <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1">
-                    Enter Amount
+                    Enter Transfer Amount
                   </label>
                   <div className="flex items-center bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition h-12">
                     <input
@@ -232,11 +232,11 @@ export default function SacredMarketplace() {
                   </div>
                 </div>
 
-                {/* Secure Button Container */}
-                <div className="sm:w-48 shrink-0">
+                {/* Secure Verification Dispatch CTA Button */}
+                <div className="sm:col-span-5 w-full">
                   <button
                     onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
-                    className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 hover:scale-[1.01] active:scale-[0.99]"
+                    className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 active:scale-[0.98]"
                   >
                     Authorize & Pay
                   </button>
