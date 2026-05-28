@@ -66,15 +66,21 @@ export default function ProposalFeed() {
       const server = new stellarSdk.Horizon.Server("https://horizon.stellar.org");
       const accountSource = await server.loadAccount(activeWallet);
 
-      // 4. Build a transaction that costs exactly 0.00001 native XLM
-      // In production, route this to your official NaloDAO governance treasury vault address
-      const DAO_TREASURY = "GAAZIZY676J7T6REIDM4N4P7P3EXAMPLEROUTINGKEYGOVERNANCE"; 
+      // 4. Dynamically source the official NaloDAO governance treasury configuration handle
+      const DAO_TREASURY = process.env.NEXT_PUBLIC_DAO_TREASURY_ADDRESS;
       
+      if (!DAO_TREASURY || !DAO_TREASURY.startsWith('G')) {
+        console.error("Treasury routing configurations unmapped or invalid.");
+        alert("System Parameter Error: The NaloDAO Treasury wallet configuration is missing or invalid.");
+        return;
+      }
+      
+      // Build the immutable cryptographic payment transaction block
       const tx = new stellarSdk.TransactionBuilder(accountSource, { fee: '10000' })
         .addOperation(stellarSdk.Operation.payment({
-          destination: DAO_TREASURY,
-          asset: stellarSdk.Asset.native(), // Native XLM lumens
-          amount: "0.00001" // Exact structural micro-fee threshold costing parameter
+          destination: DAO_TREASURY,       // Routes the 0.00001 XLM micro-fee to your new account
+          asset: stellarSdk.Asset.native(), 
+          amount: "0.00001" 
         }))
         .setNetworkPassphrase(stellarSdk.Networks.PUBLIC)
         .setTimeout(180)
