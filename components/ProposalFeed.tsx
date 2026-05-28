@@ -42,12 +42,23 @@ export default function ProposalFeed() {
     }
   };
 
-  // Upgraded Voting Executor: Updates the shared database parameters in real time
+  // Upgraded Voting Executor: Updates the user interface instantly while syncing the ledger in the background
   const castVote = async (proposalId: string, currentVotes: number, voteType: 'yes_votes' | 'no_votes') => {
-    if (votingStatus[proposalId]) return; // Stop accidental double-clicks instantly
-    
+    if (votingStatus[proposalId]) return; // Block double-clicks safely
+
+    // 1. OPTIMISTIC UI: Instantly update the visual screen components without waiting for the network
+    setProposals(prevProposals => 
+      prevProposals.map(proposal => 
+        proposal.id === proposalId 
+          ? { ...proposal, [voteType]: currentVotes + 1 }
+          : proposal
+      )
+    );
+
     setVotingStatus(prev => ({ ...prev, [proposalId]: true }));
+
     try {
+      // 2. Fire the asynchronous network instruction to the Supabase cloud cluster
       const { error } = await supabase
         .from('proposals')
         .update({ [voteType]: currentVotes + 1 })
@@ -55,11 +66,25 @@ export default function ProposalFeed() {
 
       if (error) throw error;
       
-      // Refresh local display arrays smoothly
-      await fetchProposals();
+      // 3. Silently synchronize with any other user changes across the network
+      const { data: freshData } = await supabase
+        .from('proposals')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (freshData) setProposals(freshData);
+
     } catch (err) {
       console.error("Consensus update execution failure:", err);
-      alert("Database mutation rejected. Check your connection parameters.");
+      // Revert screen parameters if the database actively dropped the transaction (e.g. RLS block)
+      setProposals(prevProposals => 
+        prevProposals.map(proposal => 
+          proposal.id === proposalId 
+            ? { ...proposal, [voteType]: currentVotes }
+            : proposal
+        )
+      );
+      alert("Voting transaction rejected. Make sure you have executed the Supabase SQL updates script!");
     } finally {
       setVotingStatus(prev => ({ ...prev, [proposalId]: false }));
     }
