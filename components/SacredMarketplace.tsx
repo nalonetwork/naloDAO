@@ -101,7 +101,7 @@ export default function SacredMarketplace() {
     const profileConnections = supplyLines.filter(line => line.buyer_wallet === currentProfile.owner_wallet);
 
     return (
-      <div className="w-full max-w-5xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4">
+      <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4">
         
         {/* Banner */}
         <div className="h-48 sm:h-64 w-full relative bg-slate-900">
@@ -131,7 +131,7 @@ export default function SacredMarketplace() {
               />
               <div className="pb-1">
                 <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">{currentProfile.business_name}</h1>
-                <p className="text-[11px] font-mono text-slate-500 mt-2 break-all max-w-xs sm:max-w-lg">
+                <p className="text-[11px] font-mono text-slate-500 mt-2 break-all max-w-xs sm:max-w-xl">
                   Node Handle: {currentProfile.owner_wallet}
                 </p>
               </div>
@@ -143,29 +143,27 @@ export default function SacredMarketplace() {
 
           <hr className="border-slate-800/60" />
 
-          {/* TWO-COLUMN GRID SYSTEM TO FIX THE SQUISHING */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Side: Information & Bio (7 Columns) */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="space-y-3">
-                <h3 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">Stewardship Metrology Statement</h3>
-                <p className="text-sm text-slate-300 leading-relaxed text-left whitespace-pre-line font-serif italic">
-                  {currentProfile.detailed_bio || currentProfile.description}
-                </p>
-              </div>
+          {/* MAIN BIOGRAPHY & PROVENANCE LOOPS (Full Width Top Row) */}
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <h3 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">Stewardship Metrology Statement</h3>
+              <p className="text-base text-slate-300 leading-relaxed text-left whitespace-pre-line font-serif italic max-w-3xl">
+                {currentProfile.detailed_bio || currentProfile.description}
+              </p>
+            </div>
 
-              {/* Provenance Connections Loop */}
-              {profileConnections.length > 0 && (
-                <div className="bg-slate-900/40 border border-slate-800/60 p-5 rounded-2xl space-y-3">
-                  <h5 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold">Verified Ecological Provenance Loop:</h5>
+            {/* Provenance Connections Loop */}
+            {profileConnections.length > 0 && (
+              <div className="bg-slate-900/20 border border-slate-800/40 p-5 rounded-2xl space-y-3 max-w-3xl">
+                <h5 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold">Verified Ecological Provenance Loop:</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {profileConnections.map((line: any, idx: number) => {
                     const supplier = merchants.find(m => m.owner_wallet === line.supplier_wallet);
                     return (
-                      <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800/40 text-xs">
-                        <div className="text-slate-300">
-                          <span className="text-emerald-400 mr-1.5">↳</span>
-                          <span>Sourcing inputs from:</span>
+                      <div key={idx} className="flex items-center justify-between gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/60 text-xs">
+                        <div className="text-slate-300 truncate">
+                          <span className="text-emerald-400 mr-2">↳</span>
+                          <span>Inputs:</span>
                           <strong 
                             className="text-white ml-1 underline cursor-pointer hover:text-emerald-400"
                             onClick={() => supplier && setActiveProfileId(supplier.id)}
@@ -173,88 +171,79 @@ export default function SacredMarketplace() {
                             {supplier ? supplier.business_name : 'Registry Partner'}
                           </strong>
                         </div>
-                        <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded self-start sm:self-auto">
+                        <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded shrink-0">
                           {line.verified_ethic}
                         </span>
                       </div>
                     );
                   })}
                 </div>
-              )}
-            </div>
-
-            {/* Right Side: High-End Checkout Panel (5 Columns) */}
-            <div className="lg:col-span-5 w-full">
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
-                
-                {/* Checkout Header */}
-                <div className="bg-slate-950 p-5 border-b border-slate-800/60">
-                  <h4 className="text-xs uppercase font-mono tracking-[0.2em] text-emerald-400 font-black">Secure Checkout</h4>
-                  <p className="text-[11px] text-slate-400 mt-1 font-serif italic">Non-custodial settlement via Stellar Network.</p>
-                </div>
-
-                <div className="p-5 space-y-5">
-                  {/* Summary Invoice Details */}
-                  <div className="space-y-2.5 bg-slate-950/60 p-4 rounded-xl border border-slate-800/40 text-xs font-mono">
-                    <div className="flex justify-between items-center text-slate-400 gap-2">
-                      <span className="shrink-0">Category:</span>
-                      <span className="text-white truncate max-w-[180px] text-right">{currentProfile.category}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-slate-400 gap-2">
-                      <span className="shrink-0">Routing:</span>
-                      <span className="text-slate-300 text-[10px] break-all text-right">
-                        {currentProfile.owner_wallet.slice(0, 6)}...{currentProfile.owner_wallet.slice(-4)}
-                      </span>
-                    </div>
-                    <hr className="border-slate-800/40 my-1" />
-                    <div className="flex justify-between items-center text-slate-400">
-                      <span>Network Axis:</span>
-                      <span className="text-emerald-400 text-[11px] font-bold">Stellar Mainnet</span>
-                    </div>
-                  </div>
-
-                  {/* Clean Amount Input Field */}
-                  <div className="space-y-2">
-                    <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold">
-                      Enter Transfer Amount
-                    </label>
-                    <div className="flex items-center bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition">
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        id={`profile-pay-${currentProfile.id}`}
-                        value={checkoutAmounts[currentProfile.id] || ''}
-                        onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
-                        className="w-full bg-transparent text-white text-xl font-mono focus:outline-none placeholder-slate-800 min-w-0"
-                      />
-                      <span className="text-xs font-mono font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg ml-2 shrink-0 select-none">
-                        USDC
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Dispatch Button */}
-                  <div className="pt-1">
-                    <button
-                      onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
-                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-3.5 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10"
-                    >
-                      Authorize & Pay
-                    </button>
-                    <p className="text-center text-[9px] font-mono text-slate-600 mt-2.5">
-                      🔒 Secured via cryptographic ledger signature
-                    </p>
-                  </div>
-                </div>
-
               </div>
+            )}
+          </div>
+
+          {/* FIXED: HORIZONTAL CHEKOUT REGISTRY BAR across the bottom of the content container */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
+            
+            {/* Top tiny alert bar */}
+            <div className="bg-slate-950 px-6 py-2.5 border-b border-slate-800/60 flex justify-between items-center text-[10px] font-mono tracking-wider text-slate-500">
+              <span className="uppercase tracking-[0.15em] text-emerald-400 font-bold">Secure Settlement Core</span>
+              <span className="font-serif italic text-slate-400 hidden sm:inline">Non-custodial infrastructure loop via Stellar Asset Bridge</span>
             </div>
 
+            {/* Main horizontal contents container */}
+            <div className="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              
+              {/* Box 1: Invoice Details Ledger (Left Column Area) */}
+              <div className="md:col-span-4 space-y-1 text-xs font-mono border-b md:border-b-0 md:border-r border-slate-800/80 pb-4 md:pb-0 md:pr-6">
+                <div className="flex justify-between items-center text-slate-400">
+                  <span>Allocation Category:</span>
+                  <span className="text-white font-bold">{currentProfile.category}</span>
+                </div>
+                <div className="flex justify-between items-center text-slate-400">
+                  <span>Stellar Target Handle:</span>
+                  <span className="text-slate-300 font-bold">
+                    {currentProfile.owner_wallet.slice(0, 6)}...{currentProfile.owner_wallet.slice(-4)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Box 2: Open Input Allocation Terminal (Center Column Area) */}
+              <div className="md:col-span-5 space-y-2">
+                <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1">
+                  Enter Transfer Amount
+                </label>
+                <div className="flex items-center bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition">
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    id={`profile-pay-${currentProfile.id}`}
+                    value={checkoutAmounts[currentProfile.id] || ''}
+                    onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
+                    className="w-full bg-transparent text-white text-xl font-mono focus:outline-none placeholder-slate-800"
+                  />
+                  <span className="text-xs font-mono font-bold text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-lg ml-2 shrink-0 select-none">
+                    USDC
+                  </span>
+                </div>
+              </div>
+
+              {/* Box 3: Execution CTA Node Button (Right Column Area) */}
+              <div className="md:col-span-3 w-full self-end md:self-center">
+                <button
+                  onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-4 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  Authorize & Pay
+                </button>
+              </div>
+
+            </div>
           </div>
 
           {/* Footer Metadata */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-4 text-[10px] font-mono text-slate-500 pt-4 border-t border-slate-800/40">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-2 text-[10px] font-mono text-slate-500 pt-4 border-t border-slate-800/40">
             <span>Registry Location: {currentProfile.physical_address || 'Bioregional Zone 1'}</span>
             <span>Contact Core: {currentProfile.contact_email || 'steward@nalo.network'}</span>
             <span>Region Flag: {currentProfile.city}, {currentProfile.country_code}</span>
