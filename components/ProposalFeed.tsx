@@ -3,20 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Self-contained database connection layer to prevent path resolution breaks
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '');
 
 interface Proposal {
   id: string;
   title: string;
   description: string;
-  creator_wallet: string;
   yes_votes: number;
   no_votes: number;
   ends_at: string;
-  created_at: string;
 }
 
 export default function ProposalFeed() {
@@ -24,174 +19,146 @@ export default function ProposalFeed() {
   const [isLoading, setIsLoading] = useState(true);
   const [votingStatus, setVotingStatus] = useState<{ [key: string]: boolean }>({});
 
-  // Fetch proposals directly from your Supabase SQL Table
   const fetchProposals = async () => {
-    setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('proposals')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const { data } = await supabase.from('proposals').select('*').order('created_at', { ascending: false });
       setProposals(data || []);
     } catch (err) {
-      console.error("Failed fetching active DAO proposals ledger:", err);
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Upgraded Voting Executor: Updates the user interface instantly while syncing the ledger in the background
-  const castVote = async (proposalId: string, currentVotes: number, voteType: 'yes_votes' | 'no_votes') => {
-    if (votingStatus[proposalId]) return; // Block double-clicks safely
+  useEffect(() => { fetchProposals(); }, []);
 
-    // 1. OPTIMISTIC UI: Instantly update the visual screen components without waiting for the network
-    setProposals(prevProposals => 
-      prevProposals.map(proposal => 
-        proposal.id === proposalId 
-          ? { ...proposal, [voteType]: currentVotes + 1 }
-          : proposal
-      )
-    );
+  const castCryptographicVote = async (proposalId: string, currentVotes: number, voteType: 'yes_votes' | 'no_votes') => {
+    if (votingStatus[proposalId]) return;
+
+    // 1. Double-Check Local Caching Isolation: Has this browser key session voted already?
+    const activeWallet = localStorage.getItem('nalo_wallet_address');
+    if (!activeWallet) {
+      alert("Please connect your Ecosystem Passport at the top of the page before casting a vote.");
+      return;
+    }
+
+    // 2. Check the database to see if this wallet has already voted on this proposal
+    const { data: existingVote } = await supabase
+      .from('votes_ledger')
+      .select('id')
+      .eq('proposal_id', proposalId)
+      .eq('user_wallet', activeWallet)
+      .maybeSingle();
+
+    if (existingVote) {
+      alert("🔒 Security Lock: Your wallet passport has already cast a vote on this proposal framework. Multi-voting is restricted.");
+      return;
+    }
 
     setVotingStatus(prev => ({ ...prev, [proposalId]: true }));
 
     try {
-      // 2. Fire the asynchronous network instruction to the Supabase cloud cluster
-      const { error } = await supabase
+      // 3. Import Stellar network tools dynamically
+      const stellarSdk = await import('@stellar/stellar-sdk');
+      const sdkModule = await import('@creit.tech/stellar-wallets-kit/sdk');
+      const KitClass: any = sdkModule.StellarWalletsKit || (sdkModule as any).default?.StellarWalletsKit;
+
+      const server = new stellarSdk.Horizon.Server("https://horizon.stellar.org");
+      const accountSource = await server.loadAccount(activeWallet);
+
+      // 4. Build a transaction that costs exactly 0.00001 native XLM
+      // In production, route this to your official NaloDAO governance treasury vault address
+      const DAO_TREASURY = "GAAZIZY676J7T6REIDM4N4P7P3EXAMPLEROUTINGKEYGOVERNANCE"; 
+      
+      const tx = new stellarSdk.TransactionBuilder(accountSource, { fee: '10000' })
+        .addOperation(stellarSdk.Operation.payment({
+          destination: DAO_TREASURY,
+          asset: stellarSdk.Asset.native(), // Native XLM lumens
+          amount: "0.00001" // Exact structural micro-fee threshold costing parameter
+        }))
+        .setNetworkPassphrase(stellarSdk.Networks.PUBLIC)
+        .setTimeout(180)
+        .build();
+
+      // 5. Prompt user's browser wallet extension or passport web-portal for signature confirmation
+      const { result } = await KitClass.sign({ transactionXdr: tx.toXDR() });
+      const submitTx = stellarSdk.TransactionBuilder.fromXDR(result, stellarSdk.Networks.PUBLIC);
+      await server.submitTransaction(submitTx);
+
+      // 6. On-chain transaction succeeded! Log the unique vote mapping row to the database ledger
+      const choiceLabel = voteType === 'yes_votes' ? 'YES' : 'NO';
+      const { error: ledgerError } = await supabase
+        .from('votes_ledger')
+        .insert([{ proposal_id: proposalId, user_wallet: activeWallet, vote_choice: choiceLabel }]);
+
+      if (ledgerError) throw ledgerError;
+
+      // 7. Increment the cumulative metrics totals safely
+      const { error: updateError } = await supabase
         .from('proposals')
         .update({ [voteType]: currentVotes + 1 })
         .eq('id', proposalId);
 
-      if (error) throw error;
-      
-      // 3. Silently synchronize with any other user changes across the network
-      const { data: freshData } = await supabase
-        .from('proposals')
-        .select('*')
-        .order('created_at', { ascending: false });
-        
-      if (freshData) setProposals(freshData);
+      if (updateError) throw updateError;
 
-    } catch (err) {
-      console.error("Consensus update execution failure:", err);
-      // Revert screen parameters if the database actively dropped the transaction (e.g. RLS block)
-      setProposals(prevProposals => 
-        prevProposals.map(proposal => 
-          proposal.id === proposalId 
-            ? { ...proposal, [voteType]: currentVotes }
-            : proposal
-        )
-      );
-      alert("Voting transaction rejected. Make sure you have executed the Supabase SQL updates script!");
+      alert("🎉 Vote verified! Your micro-fee has cleared and your vote is permanently logged.");
+      fetchProposals();
+
+    } catch (err: any) {
+      console.error("Governance pipeline operation dropped:", err);
+      alert(`Voting Halted: ${err?.message || "Please check your network parameters and try again."}`);
     } finally {
       setVotingStatus(prev => ({ ...prev, [proposalId]: false }));
     }
   };
 
-  useEffect(() => {
-    fetchProposals();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="w-full text-center py-8">
-        <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-emerald-500 rounded-full" role="status" />
-        <p className="text-xs text-slate-400 font-mono mt-2">Reading cloud consensus tracks...</p>
-      </div>
-    );
-  }
-
-  if (proposals.length === 0) {
-    return (
-      <div className="w-full text-center py-12 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40 p-6">
-        <p className="text-sm text-slate-400 font-mono">No governance proposals currently active on the ledger.</p>
-      </div>
-    );
-  }
+  if (isLoading) return <p className="text-xs text-slate-500 font-mono text-center py-4">Auditing consensus tracks...</p>;
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 mt-8">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 className="text-lg font-bold text-white tracking-tight">Active Consensus Proposals</h3>
-        <button 
-          onClick={fetchProposals}
-          className="text-xs text-emerald-400 font-mono hover:underline bg-emerald-500/5 px-2 py-1 border border-emerald-500/10 rounded-md transition"
-        >
-          ⟳ Sync Ledger
-        </button>
-      </div>
-
-      {proposals.map((proposal) => {
-        // --- YOUR DYNAMIC METRICS MAPPING BLOCK ---
-        const totalVotes = proposal.yes_votes + proposal.no_votes;
-        const yesPercent = totalVotes > 0 ? Math.round((proposal.yes_votes / totalVotes) * 100) : 0;
-        const noPercent = totalVotes > 0 ? Math.round((proposal.no_votes / totalVotes) * 100) : 0;
-        const formattedDate = new Date(proposal.ends_at).toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        });
+    <div className="space-y-4">
+      {proposals.map((p) => {
+        const total = p.yes_votes + p.no_votes;
+        const yesPercent = total > 0 ? Math.round((p.yes_votes / total) * 100) : 0;
+        const noPercent = total > 0 ? Math.round((p.no_votes / total) * 100) : 0;
 
         return (
-          <div 
-            key={proposal.id} 
-            className="bg-slate-900/60 border border-slate-800/80 p-6 rounded-2xl shadow-md backdrop-blur-sm hover:border-slate-700 transition duration-200 text-left"
-          >
-            <div className="flex items-start justify-between gap-4 mb-2">
-              <h4 className="text-md font-semibold text-white tracking-wide">{proposal.title}</h4>
-              <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-md shrink-0">
-                Active
-              </span>
+          <div key={p.id} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4 text-left">
+            <div>
+              <h4 className="text-sm font-bold text-white">{p.title}</h4>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">{p.description}</p>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed mb-4 whitespace-pre-wrap">
-              {proposal.description}
-            </p>
-
-            {/* Voting Progress Gauge Visualizer */}
-            <div className="space-y-2 border-t border-slate-800/60 pt-4">
-              <div className="flex justify-between text-[11px] font-mono text-slate-400">
-                <span>Metrics: {totalVotes} Consensus Parameters Cast</span>
-                <span>Voting Concludes: {formattedDate}</span>
-              </div>
-              
-              <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden flex border border-slate-800/40">
-                {totalVotes === 0 ? (
-                  <div className="bg-slate-800 w-full h-full" /> // Neutral baseline state if zero votes are logged
-                ) : (
+            <div className="space-y-2 pt-3 border-t border-slate-800/60">
+              <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden flex border border-slate-800/40">
+                {total === 0 ? <div className="bg-slate-800 w-full h-full" /> : (
                   <>
-                    <div style={{ width: `${yesPercent}%` }} className="bg-emerald-500 h-full transition-all duration-300" />
-                    <div style={{ width: `${noPercent}%` }} className="bg-red-500 h-full transition-all duration-300" />
+                    <div style={{ width: `${yesPercent}%` }} className="bg-emerald-500 h-full" />
+                    <div style={{ width: `${noPercent}%` }} className="bg-red-500 h-full" />
                   </>
                 )}
               </div>
-
-              <div className="flex justify-between items-center text-xs font-mono pt-1">
-                <span className="text-emerald-400 font-bold">Yes: {proposal.yes_votes} ({yesPercent}%)</span>
-                <span className="text-red-400 font-bold">No: {proposal.no_votes} ({noPercent}%)</span>
+              <div className="flex justify-between text-[11px] font-mono font-bold">
+                <span className="text-emerald-400">YES: {p.yes_votes} ({yesPercent}%)</span>
+                <span className="text-red-400">NO: {p.no_votes} ({noPercent}%)</span>
               </div>
             </div>
 
-            {/* INTERACTIVE VOTING BUTTON ACTIONS */}
-            <div className="flex gap-2 pt-4 mt-2 border-t border-slate-800/30">
-              <button
-                disabled={votingStatus[proposal.id]}
-                onClick={() => castVote(proposal.id, proposal.yes_votes, 'yes_votes')}
-                className="flex-1 bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 hover:text-slate-950 text-emerald-400 text-xs font-mono font-bold py-2.5 rounded-xl transition duration-150 active:scale-[0.98] disabled:opacity-50"
+            <div className="flex gap-2 text-xs font-mono font-bold">
+              <button 
+                disabled={votingStatus[p.id]} 
+                onClick={() => castCryptographicVote(p.id, p.yes_votes, 'yes_votes')}
+                className="flex-1 bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 hover:text-slate-950 text-emerald-400 py-2 rounded-xl transition duration-150 disabled:opacity-40"
               >
-                {votingStatus[proposal.id] ? 'Logging...' : 'Vote YES 👍'}
+                {votingStatus[p.id] ? 'Processing...' : 'Vote YES 👍 (0.00001 XLM)'}
               </button>
-              <button
-                disabled={votingStatus[proposal.id]}
-                onClick={() => castVote(proposal.id, proposal.no_votes, 'no_votes')}
-                className="flex-1 bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:text-white text-red-400 text-xs font-mono font-bold py-2.5 rounded-xl transition duration-150 active:scale-[0.98] disabled:opacity-50"
+              <button 
+                disabled={votingStatus[p.id]} 
+                onClick={() => castCryptographicVote(p.id, p.no_votes, 'no_votes')}
+                className="flex-1 bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:text-white text-red-400 py-2 rounded-xl transition duration-150 disabled:opacity-40"
               >
-                {votingStatus[proposal.id] ? 'Logging...' : 'Vote NO 👎'}
+                {votingStatus[p.id] ? 'Processing...' : 'Vote NO 👎 (0.00001 XLM)'}
               </button>
             </div>
-
           </div>
         );
       })}
