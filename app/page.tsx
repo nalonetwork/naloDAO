@@ -11,10 +11,13 @@ import GuildBoard from '@/components/GuildBoard';
 import MoneyGramBridge from '@/components/MoneyGramBridge';
 import StewardshipLeaderboard from '@/components/StewardshipLeaderboard';
 import BioregionalStatsBar from '@/components/BioregionalStatsBar';
+import PermacultureEngine from '../components/PermacultureEngine';
 
 export default function Home() {
   const [showVision, setShowVision] = useState(false);
-  const [activeTab, setActiveTab] = useState<'governance' | 'marketplace' | 'crowdfund' | 'guild'>('governance');
+  
+  // FIXED: Expanded the string type definition here to recognize your new 'permaculture' tab entry 👇
+  const [activeTab, setActiveTab] = useState<'governance' | 'marketplace' | 'crowdfund' | 'guild' | 'permaculture'>('governance');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-emerald-950/20 text-slate-200 flex flex-col items-center p-4 sm:p-12 selection:bg-emerald-600/30 selection:text-emerald-300">
@@ -86,6 +89,7 @@ export default function Home() {
         {[
           { id: 'governance', label: '🏛️ Democratic Consensus' },
           { id: 'marketplace', label: '🛒 Provenance Marketplace' },
+          { id: 'permaculture', label: '🌿 Design Engine' }, // FIXED: Inserted your custom navigation button tag here!
           { id: 'crowdfund', label: '🤝 Fair-Share Mutual Aid' },
           { id: 'guild', label: '🪓 Bioregional Guild Board' }
         ].map((tab) => (
@@ -148,7 +152,12 @@ export default function Home() {
           </div>
         )}
 
-        {/* VIEW 3: FAIR-SHARE MUTUAL AID PORTAL */}
+        {/* FIXED: VIEW 3: INTEGRATED PERMACULTURE PROFILE ENGINE VIEW HOUSING 👇 */}
+        {activeTab === 'permaculture' && (
+          <PermacultureEngine />
+        )}
+
+        {/* VIEW 4: FAIR-SHARE MUTUAL AID PORTAL */}
         {activeTab === 'crowdfund' && (
           <div className="space-y-2">
             <div className="text-center md:text-left px-2 mb-4">
@@ -159,7 +168,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* VIEW 4: BIOREGIONAL GUILD LOGISTICS SYSTEM */}
+        {/* VIEW 5: BIOREGIONAL GUILD LOGISTICS SYSTEM */}
         {activeTab === 'guild' && (
           <div className="space-y-2">
             <div className="text-center md:text-left px-2 mb-4">
