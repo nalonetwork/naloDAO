@@ -45,65 +45,51 @@ export default function PermacultureEngine() {
     setGenerating(true);
     try {
       const stateKey = region.toUpperCase().trim();
-      let annualRainfall = "38 inches (Global baseline estimation)";
+
+      // 1. CALL THE BACKEND REAL ESTATE SCRAPER & AI SYNTHESIS ROUTE 👇
+      const scraperResponse = await fetch('/api/scrape-property', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, city, state: stateKey, acres })
+      });
+      
+      if (!scraperResponse.ok) throw new Error("Internet real estate database extraction pipeline failed.");
+      const aiSynthesizedData = await scraperResponse.json();
+
+      // 2. RUN GRANTS CORRELATION AS USUAL
+      let annualRainfall = "40 inches";
       let calculatedHardiness = "7b";
       let regionalGrants = "";
-      let sectorDirectives = "";
 
-      // BIOREGIONAL CORRELATION ENGINE (USDA & STATE DATA MATRICES)
       if (stateKey === 'AL' || stateKey === 'MS' || stateKey === 'GA') {
-        annualRainfall = "56 inches";
-        calculatedHardiness = "8b / 9a (Subtropical Marine Transition)";
-        regionalGrants = "• USDA NRCS Environmental Quality Incentives Program (EQIP): Financial cost-share matching for high-tunnel organic cultivation, cover cropping matrices, and rotational agroforestry setups.\n• Alabama Soil & Water Conservation Grants: Supports watershed-conscious retention ponds and riparian buffering.\n• Section 319 Clean Water Act Funds: Direct matching funds for stabilizing severely scoured ridge edges or local stream beds.";
-        sectorDirectives = "High annual precipitation pattern paths require direct priority implementation of swale systems or contour earthworks to store extreme water surges passively within the subsoil sponge layers.";
+        annualRainfall = "56 inches"; calculatedHardiness = "8b / 9a";
+        regionalGrants = "• USDA NRCS Environmental Quality Incentives Program (EQIP): Cost-share tracking for high-tunnels.\n• Alabama Soil & Water Conservation District Infrastructure matching support modules.";
       } else if (stateKey === 'CA' || stateKey === 'AZ' || stateKey === 'NV') {
-        annualRainfall = "14 inches (Arid / Mediterranean Trend)";
-        calculatedHardiness = "9b / 10a (High Thermal Arid Margin)";
-        regionalGrants = "• State Water Efficiency and Enhancement Program (SWEEP): Direct financial incentives for installing high-efficiency solar micro-irrigation and weather-tuned water networks.\n• USDA EQIP Desert Conservation Action: Up to 75% cost-share allocation for native windbreak shelterbelts and drought-tolerant silvopasture plantings.\n• Local Bioregional Turf Replacement Credits: Financial rebates per square foot for replacing water-intensive cover elements with native perennial mulch ecosystems.";
-        sectorDirectives = "Deep structural dry sectors and high evaporation vectors require immediate implementation of deep organic woodchip wood-mass inputs, sunken planting beds (Waffle Gardens), and massive storage tanks to hold winter rain cascades.";
-      } else if (stateKey === 'TX' || stateKey === 'OK') {
-        annualRainfall = "28 inches (Highly Flash-Precipitation Vulnerable Zone)";
-        calculatedHardiness = "8a / 8b (Continental Grassland Apex)";
-        regionalGrants = "• Texas Water Development Board Agricultural Water Conservation Grants: Allocates up to $50,000 for building on-site farm storage cisterns or multi-tier tailwater recovery tracks.\n• USDA EQIP Grassland Preservation Guild: Incentives for native long-grass range restorations and keyline plowing to stop extreme storm scour.\n• Lone Star Land Steward Incentives: Property tax valuations adjustments for switching acreage over to verified native wildlife habitat profiles.";
-        sectorDirectives = "Severe flash precipitation energy spikes mean keyline design blueprints must be executed to spread cloudburst water away from active erosion valleys, moving it out to dry earthen ridges before structural damage occurs.";
+        annualRainfall = "14 inches"; calculatedHardiness = "9b / 10a";
+        regionalGrants = "• California State SWEEP Water Efficiency Program Financing.\n• Local Watershed Water Rebate Matrices.";
       } else {
-        annualRainfall = "40 inches";
-        calculatedHardiness = "6b / 7a";
-        regionalGrants = "• USDA Federal EQIP General Track: Cost-share matching vectors available for transitioning properties over to multi-layer organic forest canopies and cover layouts.\n• State Watershed Management Incentives: Reach out to local Soil & Water Conservation Districts to inquire about custom sediment control matching funds.";
-        sectorDirectives = "Apply Holmgren Principle 2 ('Catch and Store Energy') by structuring intensive roof catchment plumbing frameworks connected straight to functional holding lines.";
+        regionalGrants = "• USDA Federal EQIP General Cost-Share Program Tracks available for sustainable property conversions.";
       }
 
       const numericalAcres = parseFloat(acres) || 1.0;
       const numericalRainInch = parseFloat(annualRainfall.split(" ")[0]) || 40;
       const computedGallonsHarvestable = Math.round(numericalAcres * numericalRainInch * 27154);
 
-      const modifiedSun = `Calculated solar tracking zenith for ${city}, ${stateKey}. High radiation loads require strategic overstory tree canopy placement along the western margins to buffer afternoon heat stress.`;
-      const modifiedSlope = `Topographic vectors indicate a dynamic catchment trend typical of the regional basin. Keyline subsoil plowing recommended to relieve compaction layers.`;
-
-      // --- INITIALIZATION HANDSHAKE: COGNITIVE API IMAGE CACHING ENGINE ---
+      // 3. GOOGLE MAPS ASSET CACHING AS USUAL
       const escapedAddress = encodeURIComponent(`${address}, ${city}, ${stateKey}, US`);
       const apiFetchUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${escapedAddress}&zoom=18&size=800x400&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
-      
-      // 1. Fetch the image directly down from the cloud asset network as binary blob metadata
       const imageResponse = await fetch(apiFetchUrl);
       const imageBlob = await imageResponse.blob();
-      
-      // 2. Structure a unique deterministic file designation string signature
       const fileSignatureName = `map-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`;
 
-      // 3. Dispatch the image payload asset straight into your public Supabase folder bucket
       const { error: uploadError } = await supabase.storage
         .from('property_maps')
-        .upload(fileSignatureName, imageBlob, {
-          contentType: 'image/png',
-          cacheControl: '3600'
-        });
+        .upload(fileSignatureName, imageBlob, { contentType: 'image/png', cacheControl: '3600' });
 
       if (uploadError) throw uploadError;
-
-      // 4. Construct the absolute static cached public asset storage link URL
       const cachedSupabaseImageUrl = `${supabaseUrl}/storage/v1/object/public/property_maps/${fileSignatureName}`;
 
+      // 4. WRITE THE FULLY SCRAPED, AI SYNTHESIZED OBJECT STRAIGHT TO SUPABASE
       const { error } = await supabase
         .from('property_designs')
         .insert([{
@@ -114,27 +100,31 @@ export default function PermacultureEngine() {
           country_code: 'US',
           total_area_acres: numericalAcres,
           estimated_hardiness_zone: calculatedHardiness,
-          primary_watershed_basin: `${city} Corridor System Basin Corridor (Avg Rain: ${annualRainfall})`,
-          sun_path_vectors: modifiedSun,
-          prevailing_wind_vectors: `${sectorDirectives} Local aeolian patterns require continuous structural multi-tier perennial windbreaks along exposed boundary frames.`,
-          wildfire_risk_vectors: 'Moderate boundary rim exposure risk. Mitigated via dense succulent Zone 1 biological hydration rings.',
-          hydrological_slope_flow: `${modifiedSlope} Calculated Annual Volume Potential: ${computedGallonsHarvestable.toLocaleString()} Gallons of run-off water flow across this property profile scale annually.`,
-          zone_0_home_base: 'Main shelter layout optimized for complete south-facing passive-solar tracking arrays, internal thermal mass regulation walls, and graywater reed-bed filtration channels.',
-          zone_1_intensive_garden: 'Intensive sheet-mulched kitchen garden tracks, biological vermicompost lines, and herb spirals located right next to the kitchen access point.',
-          zone_2_semi_intensive_orchard: 'Perennial food forest polycultures matching stone fruits and berry support species directly with rotational poultry forage runways.',
-          zone_3_main_crop_pasture: 'Broadacre alley-cropping layouts configured perfectly along natural contours, combined with high-density multi-species rotational silvopasture blocks.',
-          zone_4_semi_wild_foraging: 'Managed high-canopy woodlots utilized for sustainable structural timber harvests, firewood production, and native inoculated medicinal mushroom logs.',
-          zone_5_wild_wilderness: 'Pristine, completely unmanaged ecological preserve layout designed to welcome local wildlife successions and act as a baseline observation hub.',
-          holmgren_directive_1: `Observed local microclimate data tracks. The ${annualRainfall} precipitation cycle presents an excellent seasonal yield mechanism when captured effectively.`,
-          holmgren_directive_2: `Passive contour swale plumbing strategies will intercept the calculated ${computedGallonsHarvestable.toLocaleString()} gallon yearly flow, storing it safely within the water-table sponge.`,
-          holmgren_directive_3: 'Guild stacking methodology matches deep-root nitrogen-fixing species directly underneath fruit canopies to eliminate artificial nitrogen requirements.',
+          primary_watershed_basin: `${city} Catchment Basin (Avg Rain: ${annualRainfall} // Est Runoff Capture: ${computedGallonsHarvestable.toLocaleString()} Gal/Yr)`,
+          
+          // Injecting the dynamic internet data values straight from the API output! 👇
+          sun_path_vectors: aiSynthesizedData.sun_path_vectors,
+          prevailing_wind_vectors: aiSynthesizedData.prevailing_wind_vectors,
+          wildfire_risk_vectors: aiSynthesizedData.wildfire_risk_vectors,
+          hydrological_slope_flow: `${aiSynthesizedData.hydrological_slope_flow}`,
+          
+          zone_0_home_base: aiSynthesizedData.zone_0_home_base,
+          zone_1_intensive_garden: aiSynthesizedData.zone_1_intensive_garden,
+          zone_2_semi_intensive_orchard: aiSynthesizedData.zone_2_semi_intensive_orchard,
+          zone_3_main_crop_pasture: aiSynthesizedData.zone_3_main_crop_pasture,
+          zone_4_semi_wild_foraging: aiSynthesizedData.zone_4_semi_wild_foraging,
+          zone_5_wild_wilderness: aiSynthesizedData.zone_5_wild_wilderness,
+          
+          holmgren_directive_1: aiSynthesizedData.holmgren_1,
+          holmgren_directive_2: aiSynthesizedData.holmgren_2,
+          holmgren_directive_3: aiSynthesizedData.holmgren_3,
           regional_incentives: regionalGrants,
-          cached_map_url: cachedSupabaseImageUrl // FIXED: Logged cached URL directly in database row
+          cached_map_url: cachedSupabaseImageUrl
         }]);
 
       if (error) throw error;
 
-      alert("Mollisonian property analysis computed and map cached permanently! 🌿");
+      alert("Internet listing records extracted! Permaculture profile synthesized and map cached permanently! 🌿");
       setPropName(""); setAddress(""); setCity(""); setRegion(""); setAcres("");
       loadDesignData();
     } catch (err: any) {
