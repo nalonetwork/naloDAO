@@ -7,7 +7,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// FIXED: Securely reading your Google Key from environment process variables 👇
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || '';
 
 export default function PermacultureEngine() {
@@ -21,6 +20,7 @@ export default function PermacultureEngine() {
   const [city, setCity] = useState("");
   const [region, setRegion] = useState("");
   const [acres, setAcres] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   const loadDesignData = async () => {
     setLoading(true);
@@ -40,7 +40,9 @@ export default function PermacultureEngine() {
   const handleGenerateDesign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!propName || !address || !city || !region) return alert("Please populate all location criteria parameters.");
+    if (!GOOGLE_MAPS_API_KEY) return alert("Missing secure environment public key maps matrix setup configuration.");
 
+    setGenerating(true);
     try {
       const stateKey = region.toUpperCase().trim();
       let annualRainfall = "38 inches (Global baseline estimation)";
@@ -78,6 +80,30 @@ export default function PermacultureEngine() {
       const modifiedSun = `Calculated solar tracking zenith for ${city}, ${stateKey}. High radiation loads require strategic overstory tree canopy placement along the western margins to buffer afternoon heat stress.`;
       const modifiedSlope = `Topographic vectors indicate a dynamic catchment trend typical of the regional basin. Keyline subsoil plowing recommended to relieve compaction layers.`;
 
+      // --- INITIALIZATION HANDSHAKE: COGNITIVE API IMAGE CACHING ENGINE ---
+      const escapedAddress = encodeURIComponent(`${address}, ${city}, ${stateKey}, US`);
+      const apiFetchUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${escapedAddress}&zoom=18&size=800x400&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
+      
+      // 1. Fetch the image directly down from the cloud asset network as binary blob metadata
+      const imageResponse = await fetch(apiFetchUrl);
+      const imageBlob = await imageResponse.blob();
+      
+      // 2. Structure a unique deterministic file designation string signature
+      const fileSignatureName = `map-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`;
+
+      // 3. Dispatch the image payload asset straight into your public Supabase folder bucket
+      const { error: uploadError } = await supabase.storage
+        .from('property_maps')
+        .upload(fileSignatureName, imageBlob, {
+          contentType: 'image/png',
+          cacheControl: '3600'
+        });
+
+      if (uploadError) throw uploadError;
+
+      // 4. Construct the absolute static cached public asset storage link URL
+      const cachedSupabaseImageUrl = `${supabaseUrl}/storage/v1/object/public/property_maps/${fileSignatureName}`;
+
       const { error } = await supabase
         .from('property_designs')
         .insert([{
@@ -102,16 +128,19 @@ export default function PermacultureEngine() {
           holmgren_directive_1: `Observed local microclimate data tracks. The ${annualRainfall} precipitation cycle presents an excellent seasonal yield mechanism when captured effectively.`,
           holmgren_directive_2: `Passive contour swale plumbing strategies will intercept the calculated ${computedGallonsHarvestable.toLocaleString()} gallon yearly flow, storing it safely within the water-table sponge.`,
           holmgren_directive_3: 'Guild stacking methodology matches deep-root nitrogen-fixing species directly underneath fruit canopies to eliminate artificial nitrogen requirements.',
-          regional_incentives: regionalGrants
+          regional_incentives: regionalGrants,
+          cached_map_url: cachedSupabaseImageUrl // FIXED: Logged cached URL directly in database row
         }]);
 
       if (error) throw error;
 
-      alert("Mollisonian property analysis footprint calculated, mapped, and cataloged successfully! 🌿");
+      alert("Mollisonian property analysis computed and map cached permanently! 🌿");
       setPropName(""); setAddress(""); setCity(""); setRegion(""); setAcres("");
       loadDesignData();
     } catch (err: any) {
       alert("Generation failed: " + err.message);
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -121,11 +150,6 @@ export default function PermacultureEngine() {
 
   // --- DETAILED INDIVIDUAL PERMACULTURE DESIGN PROFILE PAGE VIEW ---
   if (activeDesignId && currentDesign) {
-    const escapedAddress = encodeURIComponent(`${currentDesign.street_address}, ${currentDesign.city}, ${currentDesign.region_code}, US`);
-    
-    // FIXED: Now references the secure hidden key variable value dynamically for Google Maps 👇
-    const googleStaticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${escapedAddress}&zoom=18&size=800x400&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
-
     return (
       <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 p-6 sm:p-8 space-y-8 backdrop-blur-md text-white mt-4">
         
@@ -144,22 +168,22 @@ export default function PermacultureEngine() {
           </button>
         </div>
 
-        {/* HIGH-FIDELITY LIVE GOOGLE SAT-IMAGE FRAME VIEW MODULE */}
+        {/* HIGH-FIDELITY LIVE SUPABASE IMAGERY LAYER */}
         <div className="w-full bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-inner group relative">
-          {!GOOGLE_MAPS_API_KEY ? (
-            <div className="p-12 text-center text-xs font-mono text-slate-500 italic space-y-2">
-              <p>🌐 Google Satellite Map Imagery Layer Placeholder</p>
-              <p className="text-[10px] text-slate-600">Ensure NEXT_PUBLIC_GOOGLE_MAPS_KEY is fully populated inside your server environment variables.</p>
-            </div>
-          ) : (
+          {currentDesign.cached_map_url ? (
+            /* FIXED: Pulls directly from your secure database storage with 0 repeat calls to Google Maps 👇 */
             <img 
-              src={googleStaticMapUrl} 
-              alt="Google Maps Overhead Property Satellite Frame" 
+              src={currentDesign.cached_map_url} 
+              alt="Cached Overhead Property Satellite Frame" 
               className="w-full h-auto object-cover max-h-[350px] opacity-80 group-hover:opacity-100 transition duration-300"
             />
+          ) : (
+            <div className="p-12 text-center text-xs font-mono text-slate-600 italic">
+              Legacy site vector frame found without cached asset references.
+            </div>
           )}
-          <div className="absolute bottom-3 right-3 px-2 py-1 bg-slate-950/80 border border-slate-800 rounded font-mono text-[9px] text-slate-400 uppercase tracking-widest select-none">
-            Scale Center Viewport: 1:18 Satellite Tracking
+          <div className="absolute bottom-3 right-3 px-2 py-1 bg-slate-950/80 border border-slate-800 rounded font-mono text-[9px] text-emerald-400 uppercase tracking-widest select-none">
+            🔒 Cached Cost-Free Storage Link
           </div>
         </div>
 
@@ -330,8 +354,12 @@ export default function PermacultureEngine() {
           </div>
           
           <div className="sm:col-span-12 pt-2">
-            <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-3 rounded-xl transition duration-200 shadow-lg font-mono">
-              Propagate Design Profile
+            <button 
+              type="submit" 
+              disabled={generating}
+              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-800/40 text-slate-950 text-xs font-black uppercase tracking-widest py-3 rounded-xl transition duration-200 shadow-lg font-mono"
+            >
+              {generating ? "Caching Satellite Core Matrix..." : "Propagate Design Profile"}
             </button>
           </div>
         </form>
