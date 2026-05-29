@@ -196,7 +196,7 @@ export default function PermacultureEngine() {
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8 mt-4 text-white">
       
-      {/* Structural Form Generator Box */}
+      {/* FIXED: Structural Form Generator Box with integrated onChange state hooks */}
       <div className="bg-slate-900/40 border border-slate-800/60 p-6 rounded-2xl shadow-xl backdrop-blur-sm space-y-4">
         <div>
           <h3 className="text-md font-bold text-white tracking-wide">Generate Permaculture Site Footprint</h3>
@@ -204,26 +204,68 @@ export default function PermacultureEngine() {
         </div>
 
         <form onSubmit={handleGenerateDesign} className="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-2">
+          {/* Site or Farm Name input */}
           <div className="sm:col-span-6 space-y-1">
             <label className="text-[10px] font-mono text-slate-500 uppercase block font-bold px-1">Site or Farm Name</label>
-            <input type="text" placeholder="e.g. Oak Haven Sanctuary" value={propName} onChange={e => setPropName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" />
+            <input 
+              type="text" 
+              placeholder="e.g. Oak Haven Sanctuary" 
+              value={propName} 
+              onChange={e => setPropName(e.target.value)} 
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" 
+            />
           </div>
+          
+          {/* Total Scale acres input */}
           <div className="sm:col-span-6 space-y-1">
             <label className="text-[10px] font-mono text-slate-500 uppercase block font-bold px-1">Total Scale (Acres)</label>
-            <input type="number" step="0.1" placeholder="e.g. 5.5" value={acres} onChange={e => setAcres(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" />
+            <input 
+              type="number" 
+              step="0.1" 
+              placeholder="e.g. 5.5" 
+              value={acres} 
+              onChange={e => setAcres(e.target.value)} 
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" 
+            />
           </div>
+          
+          {/* Street Address input */}
           <div className="sm:col-span-5 space-y-1">
             <label className="text-[10px] font-mono text-slate-500 uppercase block font-bold px-1">Street Address</label>
-            <input type="text" placeholder="123 Contour Lane" value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" />
+            <input 
+              type="text" 
+              placeholder="123 Contour Lane" 
+              value={address} 
+              onChange={e => setAddress(e.target.value)} 
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" 
+            />
           </div>
+          
+          {/* City input */}
           <div className="sm:col-span-4 space-y-1">
             <label className="text-[10px] font-mono text-slate-500 uppercase block font-bold px-1">City</label>
-            <input type="text" placeholder="Foley" value={city} onChange={e => setCity(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" />
+            <input 
+              type="text" 
+              placeholder="Foley" 
+              value={city} 
+              onChange={e => setCity(e.target.value)} 
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" 
+            />
           </div>
+          
+          {/* State code input */}
           <div className="sm:col-span-3 space-y-1">
             <label className="text-[10px] font-mono text-slate-500 uppercase block font-bold px-1">State Code</label>
-            <input type="text" placeholder="AL" maxLength={2} value={region} onChange={e => setRegion(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500 uppercase" />
+            <input 
+              type="text" 
+              placeholder="AL" 
+              maxLength={2} 
+              value={region} 
+              onChange={e => setRegion(e.target.value)} 
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500 uppercase" 
+            />
           </div>
+          
           <div className="sm:col-span-12 pt-2">
             <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest py-3 rounded-xl transition duration-200 shadow-lg font-mono">
               Propagate Design Profile
