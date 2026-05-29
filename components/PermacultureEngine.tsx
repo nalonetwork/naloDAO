@@ -40,56 +40,37 @@ export default function PermacultureEngine() {
   const handleGenerateDesign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!propName || !address || !city || !region) return alert("Please populate all location criteria parameters.");
-    if (!GOOGLE_MAPS_API_KEY) return alert("Missing secure environment public key maps matrix setup configuration.");
 
     setGenerating(true);
     try {
       const stateKey = region.toUpperCase().trim();
-
-      // 1. CALL THE BACKEND REAL ESTATE SCRAPER & AI SYNTHESIS ROUTE 👇
-      const scraperResponse = await fetch('/api/scrape-property', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, city, state: stateKey, acres })
-      });
-      
-      if (!scraperResponse.ok) throw new Error("Internet real estate database extraction pipeline failed.");
-      const aiSynthesizedData = await scraperResponse.json();
-
-      // 2. RUN GRANTS CORRELATION AS USUAL
       let annualRainfall = "40 inches";
       let calculatedHardiness = "7b";
       let regionalGrants = "";
 
+      // Smart Internal Bioregional Estimator
       if (stateKey === 'AL' || stateKey === 'MS' || stateKey === 'GA') {
-        annualRainfall = "56 inches"; calculatedHardiness = "8b / 9a";
-        regionalGrants = "• USDA NRCS Environmental Quality Incentives Program (EQIP): Cost-share tracking for high-tunnels.\n• Alabama Soil & Water Conservation District Infrastructure matching support modules.";
+        annualRainfall = "56 inches"; 
+        calculatedHardiness = "8b / 9a";
+        regionalGrants = "• USDA NRCS Environmental Quality Incentives Program (EQIP): Direct cost-share matching available for local organic high-tunnels, cover cropping, and rotational silvopasture setups.\n• State Watershed Management Incentives: Cost matching options for installing sediment retention structures and riparian buffers.";
       } else if (stateKey === 'CA' || stateKey === 'AZ' || stateKey === 'NV') {
-        annualRainfall = "14 inches"; calculatedHardiness = "9b / 10a";
-        regionalGrants = "• California State SWEEP Water Efficiency Program Financing.\n• Local Watershed Water Rebate Matrices.";
+        annualRainfall = "14 inches"; 
+        calculatedHardiness = "9b / 10a";
+        regionalGrants = "• California SWEEP Water Infrastructure Incentives: Offers up to $100,000 for building solar-powered micro-irrigation lines.\n• Desert Conservation cost-shares available through regional BLM and NRCS range assistance programs.";
       } else {
-        regionalGrants = "• USDA Federal EQIP General Cost-Share Program Tracks available for sustainable property conversions.";
+        regionalGrants = "• USDA EQIP Core Track: Standard federal conservation grants available for multi-story orchard transitioning and soil regeneration layouts.";
       }
 
       const numericalAcres = parseFloat(acres) || 1.0;
       const numericalRainInch = parseFloat(annualRainfall.split(" ")[0]) || 40;
       const computedGallonsHarvestable = Math.round(numericalAcres * numericalRainInch * 27154);
 
-      // 3. GOOGLE MAPS ASSET CACHING AS USUAL
+      // Generate a static re-usable Google Maps URL link
       const escapedAddress = encodeURIComponent(`${address}, ${city}, ${stateKey}, US`);
-      const apiFetchUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${escapedAddress}&zoom=18&size=800x400&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
-      const imageResponse = await fetch(apiFetchUrl);
-      const imageBlob = await imageResponse.blob();
-      const fileSignatureName = `map-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`;
+      const staticMapUrl = GOOGLE_MAPS_API_KEY 
+        ? `https://maps.googleapis.com/maps/api/staticmap?center=${escapedAddress}&zoom=18&size=800x400&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`
+        : '';
 
-      const { error: uploadError } = await supabase.storage
-        .from('property_maps')
-        .upload(fileSignatureName, imageBlob, { contentType: 'image/png', cacheControl: '3600' });
-
-      if (uploadError) throw uploadError;
-      const cachedSupabaseImageUrl = `${supabaseUrl}/storage/v1/object/public/property_maps/${fileSignatureName}`;
-
-      // 4. WRITE THE FULLY SCRAPED, AI SYNTHESIZED OBJECT STRAIGHT TO SUPABASE
       const { error } = await supabase
         .from('property_designs')
         .insert([{
@@ -101,34 +82,17 @@ export default function PermacultureEngine() {
           total_area_acres: numericalAcres,
           estimated_hardiness_zone: calculatedHardiness,
           primary_watershed_basin: `${city} Catchment Basin (Avg Rain: ${annualRainfall} // Est Runoff Capture: ${computedGallonsHarvestable.toLocaleString()} Gal/Yr)`,
-          
-          // Injecting the dynamic internet data values straight from the API output! 👇
-          sun_path_vectors: aiSynthesizedData.sun_path_vectors,
-          prevailing_wind_vectors: aiSynthesizedData.prevailing_wind_vectors,
-          wildfire_risk_vectors: aiSynthesizedData.wildfire_risk_vectors,
-          hydrological_slope_flow: `${aiSynthesizedData.hydrological_slope_flow}`,
-          
-          zone_0_home_base: aiSynthesizedData.zone_0_home_base,
-          zone_1_intensive_garden: aiSynthesizedData.zone_1_intensive_garden,
-          zone_2_semi_intensive_orchard: aiSynthesizedData.zone_2_semi_intensive_orchard,
-          zone_3_main_crop_pasture: aiSynthesizedData.zone_3_main_crop_pasture,
-          zone_4_semi_wild_foraging: aiSynthesizedData.zone_4_semi_wild_foraging,
-          zone_5_wild_wilderness: aiSynthesizedData.zone_5_wild_wilderness,
-          
-          holmgren_directive_1: aiSynthesizedData.holmgren_1,
-          holmgren_directive_2: aiSynthesizedData.holmgren_2,
-          holmgren_directive_3: aiSynthesizedData.holmgren_3,
           regional_incentives: regionalGrants,
-          cached_map_url: cachedSupabaseImageUrl
+          cached_map_url: staticMapUrl
         }]);
 
       if (error) throw error;
 
-      alert("Internet listing records extracted! Permaculture profile synthesized and map cached permanently! 🌿");
+      alert("Property registry account populated successfully! Design studio is now online. 🌿");
       setPropName(""); setAddress(""); setCity(""); setRegion(""); setAcres("");
       loadDesignData();
     } catch (err: any) {
-      alert("Generation failed: " + err.message);
+      alert("Registration failed: " + err.message);
     } finally {
       setGenerating(false);
     }
@@ -136,9 +100,9 @@ export default function PermacultureEngine() {
 
   const currentDesign = designs.find(d => d.id === activeDesignId);
 
-  if (loading) return <div className="text-xs font-mono text-slate-500 italic p-8">Analyzing site topographies...</div>;
+  if (loading) return <div className="text-xs font-mono text-slate-500 italic p-8">Loading design directory...</div>;
 
-  // --- DETAILED INDIVIDUAL PERMACULTURE DESIGN PROFILE PAGE VIEW ---
+  // --- DETAILED PROFILE PAGE VIEW ---
   if (activeDesignId && currentDesign) {
     return (
       <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 p-6 sm:p-8 space-y-8 backdrop-blur-md text-white mt-4">
@@ -158,23 +122,20 @@ export default function PermacultureEngine() {
           </button>
         </div>
 
-        {/* HIGH-FIDELITY LIVE SUPABASE IMAGERY LAYER */}
+        {/* GOOGLE SATELLITE IMAGE LAYER */}
         <div className="w-full bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-inner group relative">
           {currentDesign.cached_map_url ? (
-            /* FIXED: Pulls directly from your secure database storage with 0 repeat calls to Google Maps 👇 */
             <img 
               src={currentDesign.cached_map_url} 
-              alt="Cached Overhead Property Satellite Frame" 
+              alt="Property Satellite Frame" 
               className="w-full h-auto object-cover max-h-[350px] opacity-80 group-hover:opacity-100 transition duration-300"
             />
           ) : (
-            <div className="p-12 text-center text-xs font-mono text-slate-600 italic">
-              Legacy site vector frame found without cached asset references.
+            <div className="p-12 text-center text-xs font-mono text-slate-500 italic space-y-1">
+              <p>🌐 Google Satellite Map Viewport Placeholder</p>
+              <p className="text-[10px] text-slate-600">Ensure NEXT_PUBLIC_GOOGLE_MAPS_KEY is populated to see live image layouts.</p>
             </div>
           )}
-          <div className="absolute bottom-3 right-3 px-2 py-1 bg-slate-950/80 border border-slate-800 rounded font-mono text-[9px] text-emerald-400 uppercase tracking-widest select-none">
-            🔒 Cached Cost-Free Storage Link
-          </div>
         </div>
 
         {/* Technical Property Specifications Grid */}
@@ -193,7 +154,7 @@ export default function PermacultureEngine() {
           </div>
         </div>
 
-        {/* HIGH EXPANSION ROW: GOVERNMENTAL FINANCIAL INCENTIVES & USDA GRANTS */}
+        {/* INCENTIVES & USDA GRANTS */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/20 border border-emerald-500/20 p-6 rounded-2xl space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-md">💵</span>
@@ -201,7 +162,7 @@ export default function PermacultureEngine() {
           </div>
           <p className="text-[11px] text-slate-400 font-mono">Governmental funding vectors calculated based on matching state conservation parameters:</p>
           <div className="text-xs text-slate-300 font-mono whitespace-pre-line leading-relaxed pl-1 pt-1">
-            {currentDesign.regional_incentives || "No current state-specific matching grant models found for this bioregion corridor track."}
+            {currentDesign.regional_incentives}
           </div>
         </div>
 
@@ -214,7 +175,7 @@ export default function PermacultureEngine() {
               <p className="text-slate-300 font-serif italic leading-relaxed">{currentDesign.sun_path_vectors}</p>
             </div>
             <div className="bg-slate-900/40 border border-slate-800/40 p-4 rounded-xl space-y-1">
-              <span className="text-slate-400 font-bold block">💨 Aeolian Sector & Climate Updates (Winds):</span>
+              <span className="text-slate-400 font-bold block">💨 Aeolian Sector (Winds):</span>
               <p className="text-slate-300 font-serif italic leading-relaxed">{currentDesign.prevailing_wind_vectors}</p>
             </div>
             <div className="bg-slate-900/40 border border-slate-800/40 p-4 rounded-xl space-y-1">
@@ -222,7 +183,7 @@ export default function PermacultureEngine() {
               <p className="text-slate-300 font-serif italic leading-relaxed">{currentDesign.wildfire_risk_vectors}</p>
             </div>
             <div className="bg-slate-900/40 border border-slate-800/40 p-4 rounded-xl space-y-1">
-              <span className="text-slate-400 font-bold block">💧 Topographic Gradient & Capture Potential (Hydrology Flow):</span>
+              <span className="text-slate-400 font-bold block">💧 Topographic Gradient (Hydrology Flow):</span>
               <p className="text-slate-300 font-serif italic leading-relaxed">{currentDesign.hydrological_slope_flow}</p>
             </div>
           </div>
@@ -281,8 +242,8 @@ export default function PermacultureEngine() {
       {/* Structural Form Generator Box */}
       <div className="bg-slate-900/40 border border-slate-800/60 p-6 rounded-2xl shadow-xl backdrop-blur-sm space-y-4">
         <div>
-          <h3 className="text-md font-bold text-white tracking-wide">Generate Permaculture Site Footprint</h3>
-          <p className="text-xs text-slate-400 mt-1">Input property criteria vectors to propagate an automated spatial zoning layout profile.</p>
+          <h3 className="text-md font-bold text-white tracking-wide">Register New Ecosystem Site</h3>
+          <p className="text-xs text-slate-400 mt-1">Input your property coordinates to open a dedicated, local permaculture design framework.</p>
         </div>
 
         <form onSubmit={handleGenerateDesign} className="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-2">
@@ -349,7 +310,7 @@ export default function PermacultureEngine() {
               disabled={generating}
               className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-800/40 text-slate-950 text-xs font-black uppercase tracking-widest py-3 rounded-xl transition duration-200 shadow-lg font-mono"
             >
-              {generating ? "Caching Satellite Core Matrix..." : "Propagate Design Profile"}
+              {generating ? "Registering Property Hub..." : "Propagate Site Registry Profile"}
             </button>
           </div>
         </form>
@@ -368,7 +329,7 @@ export default function PermacultureEngine() {
                 <p className="text-xs text-slate-400 mt-0.5">📍 {design.street_address}, {design.city}, {design.region_code}</p>
                 <div className="flex gap-4 text-[10px] font-mono text-slate-500 mt-2">
                   <span>Scale: {design.total_area_acres} Acres</span>
-                  <span>Zone: USDA {design.estimated_hardiness_zone}</span>
+                  <span>Zone: {design.estimated_hardiness_zone}</span>
                 </div>
               </div>
               <button 
