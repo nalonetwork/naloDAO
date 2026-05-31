@@ -36,6 +36,15 @@ export default function CrowdfundPortal() {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + parseInt(duration));
 
+    // A collection of pristine, non-duplicative permaculture/environmental images for fresh user submissions
+    const designBackdrops = [
+      'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1516253593875-bd7ba052fbc5?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1592417817098-8f3d6eb18865?auto=format&fit=crop&w=600&q=80'
+    ];
+    const assignedImage = designBackdrops[Math.floor(Math.random() * designBackdrops.length)];
+
     try {
       const { error } = await supabase
         .from('campaigns')
@@ -46,7 +55,8 @@ export default function CrowdfundPortal() {
             target_amount: parseFloat(target),
             raised_amount: 0,
             beneficiary_wallet: receiver,
-            ends_at: expirationDate.toISOString()
+            ends_at: expirationDate.toISOString(),
+            image_url: assignedImage // ◄── Assigns a unique cover url link automatically
           }
         ]);
 
@@ -72,7 +82,6 @@ export default function CrowdfundPortal() {
     }
 
     try {
-      // 1. Core package dynamic runtime loading paths
       const stellarSdk = await import('@stellar/stellar-sdk');
       const sdkModule = await import('@creit.tech/stellar-wallets-kit/sdk');
       const KitClass: any = sdkModule.StellarWalletsKit || (sdkModule as any).default?.StellarWalletsKit;
@@ -85,17 +94,14 @@ export default function CrowdfundPortal() {
         return;
       }
 
-      // 2. Fetch live network parameters and account sequences
       const server = new stellarSdk.Horizon.Server("https://horizon.stellar.org");
       const accountSource = await server.loadAccount(derivedUserWallet);
 
-      // 3. Define compliant, regulated Circle USDC asset contract parameters
       const USDC_ASSET = new stellarSdk.Asset(
         "USDC",
         "GA5ZBLAMTP6F34IEU6CHH77WCQE75577VAFZOMZIBZ36EIKKAA5CTFHT"
       );
 
-      // 4. Build the immutable blockchain payment payload
       const tx = new stellarSdk.TransactionBuilder(accountSource, { fee: '10000' })
         .addOperation(stellarSdk.Operation.payment({
           destination: destinationWallet,
@@ -106,12 +112,10 @@ export default function CrowdfundPortal() {
         .setTimeout(180)
         .build();
 
-      // 5. Present signature request frame to user passport modal
       const { result } = await KitClass.sign({ transactionXdr: tx.toXDR() });
       const submitTx = stellarSdk.TransactionBuilder.fromXDR(result, stellarSdk.Networks.PUBLIC);
       await server.submitTransaction(submitTx);
 
-      // 6. Mutate database records directly to show updated funding levels in real-time
       const newTotal = currentRaised + parseFloat(amountToContribute);
       const { error: dbError } = await supabase
         .from('campaigns')
@@ -136,11 +140,11 @@ export default function CrowdfundPortal() {
       {/* LEFT COLUMN: CAMPAIGN LAUNCH FORM */}
       <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
         <div>
-          <h3 className="text-md font-bold text-white">Pitch Earth-Care Action</h3>
-          <p className="text-xs text-slate-400">Request funding directly from the decentralized community treasury chest.</p>
+          <h3 className="text-md font-bold text-white text-left">Pitch Earth-Care Action</h3>
+          <p className="text-xs text-slate-400 text-left">Request funding directly from the decentralized community treasury chest.</p>
         </div>
 
-        <form onSubmit={handleLaunchCampaign} className="space-y-3">
+        <form onSubmit={handleLaunchCampaign} className="space-y-3 text-left">
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Project Objective</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Downtown Public Food Forest" className="w-full bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition" required />
@@ -159,8 +163,8 @@ export default function CrowdfundPortal() {
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Duration</label>
               <select value={duration} onChange={e => setDuration(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white px-2 py-2 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition">
-                <option value="7">7 Days</option>
                 <option value="14">14 Days</option>
+                <option value="21">21 Days</option>
                 <option value="30">30 Days</option>
               </select>
             </div>
@@ -182,7 +186,7 @@ export default function CrowdfundPortal() {
 
       {/* RIGHT COLUMNS: ACTIVE MUTUAL AID CAMPAIGNS FEED */}
       <div className="md:col-span-2 space-y-4">
-        <div className="border-b border-slate-900 pb-2">
+        <div className="border-b border-slate-900 pb-2 text-left">
           <h3 className="text-md font-bold text-white">Active Fair-Share Pools</h3>
           <p className="text-xs text-slate-400">Directly fund verified local resilience initiatives with zero management deductions.</p>
         </div>
@@ -198,39 +202,59 @@ export default function CrowdfundPortal() {
               const formattedExpiration = new Date(c.ends_at).toLocaleDateString();
 
               return (
-                <div key={c.id} className="bg-slate-900/50 border border-slate-800/80 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-md backdrop-blur-sm">
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-start gap-2">
-                      <h4 className="text-sm font-bold text-white tracking-wide">{c.title}</h4>
-                      <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold shrink-0">
-                        {percentage}% Funded
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{c.description}</p>
-                  </div>
-
-                  {/* Funding Gauge Bars */}
-                  <div className="space-y-2.5 pt-2 border-t border-slate-800/60">
-                    <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800/40">
-                      <div style={{ width: `${percentage}%` }} className="bg-emerald-400 h-full transition-all duration-500 rounded-full" />
-                    </div>
-
-                    <div className="flex justify-between items-center text-[11px] font-mono">
-                      <span className="text-slate-400">Raised: <strong className="text-white font-medium">{c.raised_amount}</strong> / {c.target_amount} USDC</span>
-                      <span className="text-slate-500 text-[10px]">Ends: {formattedExpiration}</span>
-                    </div>
-
-                    {/* Interactive Injection Panel */}
-                    <div className="flex gap-1.5 pt-1.5">
-                      <div className="relative rounded-xl shadow-sm w-full">
-                        <input type="number" placeholder="Amount" value={fundAmounts[c.id] || ''} onChange={e => setFundAmounts(prev => ({ ...prev, [c.id]: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 text-white text-xs font-mono pl-3 pr-9 py-2 rounded-xl focus:outline-none focus:border-emerald-500 transition" />
-                        <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none"><span className="text-[9px] font-mono text-slate-500 font-bold">USDC</span></div>
+                <div key={c.id} className="bg-slate-900/50 border border-slate-800/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md backdrop-blur-sm group hover:border-slate-700/80 transition duration-200">
+                  
+                  {/* Vibrant Merchant Cover Photo Segment */}
+                  <div className="h-40 w-full bg-slate-950 relative overflow-hidden border-b border-slate-800/40">
+                    {c.image_url ? (
+                      <img 
+                        src={c.image_url} 
+                        alt={c.title}
+                        className="w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-[1.02] transition duration-300 ease-in-out"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-emerald-950/20 to-slate-950 flex items-center justify-center text-slate-600 font-mono text-[10px]">
+                        🌱 Ecosystem Project Photo
                       </div>
-                      <button onClick={() => handleContribute(c.id, c.raised_amount, c.beneficiary_wallet)} className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-extrabold px-4 py-2 rounded-xl transition shrink-0 shadow-lg shadow-emerald-500/5">
-                        Share
-                      </button>
+                    )}
+                    
+                    {/* Floating Category Percentage Overlay */}
+                    <span className="absolute top-3 right-3 bg-slate-950/90 border border-slate-800/60 text-[9px] font-mono uppercase font-bold tracking-widest text-emerald-400 px-2 py-0.5 rounded-lg backdrop-blur-md shadow-md">
+                      {percentage}% Funded
+                    </span>
+                  </div>
+
+                  {/* Context Info Area */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-1.5 text-left">
+                      <h4 className="text-sm font-bold text-white tracking-wide group-hover:text-emerald-400 transition">{c.title}</h4>
+                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-3 font-light">{c.description}</p>
+                    </div>
+
+                    {/* Funding Gauge Progress Bars */}
+                    <div className="space-y-2.5 pt-2 border-t border-slate-800/60 text-left">
+                      <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800/40">
+                        <div style={{ width: `${percentage}%` }} className="bg-emerald-400 h-full transition-all duration-500 rounded-full" />
+                      </div>
+
+                      <div className="flex justify-between items-center text-[10px] font-mono font-bold">
+                        <span className="text-slate-400">Raised: <strong className="text-white font-medium">{parseFloat(c.raised_amount).toFixed(2)}</strong> / {c.target_amount} USDC</span>
+                        <span className="text-slate-500 font-normal">Ends: {formattedExpiration}</span>
+                      </div>
+
+                      {/* Interactive Contribution Panel */}
+                      <div className="flex gap-1.5 pt-1.5">
+                        <div className="relative rounded-xl shadow-sm w-full">
+                          <input type="number" placeholder="Amount" value={fundAmounts[c.id] || ''} onChange={e => setFundAmounts(prev => ({ ...prev, [c.id]: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 text-white text-xs font-mono pl-3 pr-9 py-2 rounded-xl focus:outline-none focus:border-emerald-500 transition h-9" />
+                          <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none"><span className="text-[9px] font-mono text-slate-600 font-bold">USDC</span></div>
+                        </div>
+                        <button onClick={() => handleContribute(c.id, c.raised_amount, c.beneficiary_wallet)} className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black px-4 py-2 rounded-xl transition shrink-0 shadow-lg shadow-emerald-500/5 h-9 active:scale-95 uppercase tracking-wide">
+                          Share
+                        </button>
+                      </div>
                     </div>
                   </div>
+
                 </div>
               );
             })}
