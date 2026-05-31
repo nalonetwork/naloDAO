@@ -29,7 +29,6 @@ export default function GuildBoard() {
 
     const activeWallet = localStorage.getItem('nalo_wallet_address') || 'G_ANONYMOUS_STEWARD_FALLBACK_NODE';
     
-    // Assign random generic fallbacks for user posts ensuring zero aesthetic duplications
     const fallbacks = [
       'https://images.unsplash.com/photo-1464225226634-758beb0a499a?auto=format&fit=crop&w=600&q=80',
       'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=600&q=80'
@@ -161,67 +160,82 @@ export default function GuildBoard() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {notices.map((n) => (
-            <div key={n.id} className="bg-slate-900/50 border border-slate-800/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md backdrop-blur-sm group hover:border-slate-700/80 transition duration-200">
-              
-              {/* Cover Photo Segment */}
-              <div className="h-40 w-full bg-slate-950 relative overflow-hidden border-b border-slate-800/40">
-                {n.image_url ? (
-                  <img src={n.image_url} alt={n.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-[1.02] transition duration-300 ease-in-out" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-emerald-950/20 to-slate-950 flex items-center justify-center text-slate-600 font-mono text-[10px]">🌾 Resource Exchange Asset</div>
-                )}
+          {notices.map((n) => {
+            // 🌟 CODE ENFORCED ASSET LOGIC: Bypasses browser cache memory for the fungal listing row explicitly
+            const isFungalCompost = n.title && n.title.toLowerCase().includes('fungal');
+            const reliableFungalBlockUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Shitake_growing_on_substrate.jpg/600px-Shitake_growing_on_substrate.jpg";
+            const currentImgSource = isFungalCompost ? reliableFungalBlockUrl : n.image_url;
+
+            return (
+              <div key={n.id} className="bg-slate-900/50 border border-slate-800/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-md backdrop-blur-sm group hover:border-slate-700/80 transition duration-200">
                 
-                <span className={`absolute top-3 left-3 text-[9px] font-mono uppercase font-bold tracking-widest px-2 py-0.5 rounded-lg backdrop-blur-md shadow-md border ${
-                  n.notice_type === 'SURPLUS' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-teal-500/10 text-teal-300 border-teal-500/20'
-                }`}>
-                  {n.notice_type}
-                </span>
-              </div>
-
-              {/* Notice Body */}
-              <div className="p-5 space-y-4 flex-1 flex flex-col justify-between text-left">
-                <div className="space-y-1.5">
-                  <h4 className="text-sm font-bold text-white tracking-wide">{n.title}</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed font-light">{n.details}</p>
-                </div>
-
-                {/* INTERACTIVE ACTIONS COMPONENT LAYOUT PANEL */}
-                <div className="space-y-3 pt-3 border-t border-slate-800/60">
+                {/* Cover Photo Segment */}
+                <div className="h-40 w-full bg-slate-950 relative overflow-hidden border-b border-slate-800/40">
+                  {currentImgSource ? (
+                    <img 
+                      src={currentImgSource} 
+                      alt={n.title} 
+                      onError={(e) => {
+                        // Fallback handler if external domains face rate restrictions
+                        e.currentTarget.src = isFungalCompost ? reliableFungalBlockUrl : "https://images.unsplash.com/photo-1464225226634-758beb0a499a?auto=format&fit=crop&w=600&q=80";
+                      }}
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-[1.02] transition duration-300 ease-in-out" 
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-emerald-950/20 to-slate-950 flex items-center justify-center text-slate-600 font-mono text-[10px]">🌾 Resource Exchange Asset</div>
+                  )}
                   
-                  {/* Row 1: Communications metadata bridge triggers */}
-                  <div className="flex justify-between items-center text-[10px] font-mono">
-                    <span className="text-slate-500">📞 Contact Link:</span>
-                    <button onClick={() => alert(`Launching communication system to dial: ${n.contact_info}`)} className="text-emerald-400 hover:underline font-bold">
-                      {n.contact_info} ↗
-                    </button>
-                  </div>
-
-                  {/* Row 2: In-card USDC micro-settlement forms field */}
-                  <div className="flex gap-1.5 pt-0.5">
-                    <div className="relative rounded-xl shadow-sm w-full">
-                      <input type="number" placeholder="Settle Amount" value={settleAmounts[n.id] || ''} onChange={e => setSettleAmounts(prev => ({ ...prev, [n.id]: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 text-white text-xs font-mono pl-3 pr-9 py-2 rounded-xl focus:outline-none focus:border-emerald-500 transition h-9" />
-                      <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none"><span className="text-[9px] font-mono text-slate-600 font-bold">USDC</span></div>
-                    </div>
-                    <button onClick={() => handleDirectSettle(n.owner_wallet, n.id)} className="bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl transition shrink-0 h-9 active:scale-95">
-                      Settle
-                    </button>
-                  </div>
-
-                  {/* Row 3: formalize provenance connection loops button triggers */}
-                  <button onClick={() => handleLinkRelationship(n.owner_wallet, n.title)} className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-wider py-2 rounded-xl transition active:scale-95 text-center block shadow-md">
-                    🤝 Connect Supply Line
-                  </button>
-
-                  <div className="text-[8px] font-mono text-slate-600 text-center select-none pt-1">
-                    Node: {n.owner_wallet.slice(0, 10)}...{n.owner_wallet.slice(-10)}
-                  </div>
-
+                  <span className={`absolute top-3 left-3 text-[9px] font-mono uppercase font-bold tracking-widest px-2 py-0.5 rounded-lg backdrop-blur-md shadow-md border ${
+                    n.notice_type === 'SURPLUS' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-teal-500/10 text-teal-300 border-teal-500/20'
+                  }`}>
+                    {n.notice_type}
+                  </span>
                 </div>
-              </div>
 
-            </div>
-          ))}
+                {/* Notice Body */}
+                <div className="p-5 space-y-4 flex-1 flex flex-col justify-between text-left">
+                  <div className="space-y-1.5">
+                    <h4 className="text-sm font-bold text-white tracking-wide">{n.title}</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed font-light">{n.details}</p>
+                  </div>
+
+                  {/* INTERACTIVE ACTIONS COMPONENT LAYOUT PANEL */}
+                  <div className="space-y-3 pt-3 border-t border-slate-800/60">
+                    
+                    {/* Row 1: Communications metadata bridge triggers */}
+                    <div className="flex justify-between items-center text-[10px] font-mono">
+                      <span className="text-slate-500">📞 Contact Link:</span>
+                      <button onClick={() => alert(`Launching communication system to dial: ${n.contact_info}`)} className="text-emerald-400 hover:underline font-bold">
+                        {n.contact_info} ↗
+                      </button>
+                    </div>
+
+                    {/* Row 2: In-card USDC micro-settlement forms field */}
+                    <div className="flex gap-1.5 pt-0.5">
+                      <div className="relative rounded-xl shadow-sm w-full">
+                        <input type="number" placeholder="Settle Amount" value={settleAmounts[n.id] || ''} onChange={e => setSettleAmounts(prev => ({ ...prev, [n.id]: e.target.value }))} className="w-full bg-slate-950 border border-slate-800 text-white text-xs font-mono pl-3 pr-9 py-2 rounded-xl focus:outline-none focus:border-emerald-500 transition h-9" />
+                        <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none"><span className="text-[9px] font-mono text-slate-600 font-bold">USDC</span></div>
+                      </div>
+                      <button onClick={() => handleDirectSettle(n.owner_wallet, n.id)} className="bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl transition shrink-0 h-9 active:scale-95">
+                        Settle
+                      </button>
+                    </div>
+
+                    {/* Row 3: formalize provenance connection loops button triggers */}
+                    <button onClick={() => handleLinkRelationship(n.owner_wallet, n.title)} className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-wider py-2 rounded-xl transition active:scale-95 text-center block shadow-md">
+                      🤝 Connect Supply Line
+                    </button>
+
+                    <div className="text-[8px] font-mono text-slate-600 text-center select-none pt-1">
+                      Node: {n.owner_wallet.slice(0, 10)}...{n.owner_wallet.slice(-10)}
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+            );
+          })}
         </div>
       </div>
 
