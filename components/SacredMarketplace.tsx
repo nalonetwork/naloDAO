@@ -18,6 +18,7 @@ interface Merchant {
   image_url?: string;
   logo_url?: string;
   banner_url?: string;
+  property_banner_url?: string; // ◄── Explicit GIS satellite photography row tracking link
   detailed_bio?: string;
   physical_address?: string;
   contact_email?: string;
@@ -97,166 +98,314 @@ export default function SacredMarketplace() {
 
   const currentProfile = merchants.find(m => m.id === activeProfileId);
 
-  // --- DYNAMIC PROFILE VIEW ---
+  // --- INTERACTIVE PROFILE VIEW INTERCEPTOR ---
   if (activeProfileId && currentProfile) {
     const profileConnections = supplyLines.filter(line => line.buyer_wallet === currentProfile.owner_wallet);
+    
+    // Check if the current profile represents an intensive permaculture land project structure
+    const isPermacultureRegistryNode = currentProfile.category?.toLowerCase() === 'agriculture' || currentProfile.business_name.toLowerCase().includes('roe');
 
-    return (
-      <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4 animate-fade-in">
-        
-        {/* Banner Segment - Dynamically linked from database */}
-        <div className="h-48 sm:h-64 w-full relative bg-slate-900">
-          <img 
-            src={currentProfile.banner_url || currentProfile.image_url || 'https://images.unsplash.com/photo-1464225226634-758beb0a499a?auto=format&fit=crop&w=1200&q=80'} 
-            alt="Registry Node Banner"
-            className="w-full h-full object-cover opacity-50"
-          />
-          <button 
-            onClick={() => setActiveProfileId(null)}
-            className="absolute top-4 left-4 sm:top-6 sm:left-6 px-4 py-2 bg-slate-950/90 border border-slate-800 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 hover:text-white transition z-20"
-          >
-            ← Back to Network
-          </button>
-        </div>
+    if (isPermacultureRegistryNode) {
+      // 🌿 BRANCH A: HIGH-UTILITY MOLLISONIAN PERMACULTURE DESIGN CORE
+      const landMapAsset = currentProfile.property_banner_url || currentProfile.banner_url || 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80';
 
-        {/* Profile Content Container */}
-        <div className="p-4 sm:p-8 relative -mt-16 space-y-8">
+      return (
+        <div className="w-full max-w-5xl mx-auto bg-slate-950/40 border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl mt-4 animate-fade-in text-left">
           
-          {/* Brand Info Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="flex items-end gap-4">
-              <img 
-                src={currentProfile.logo_url || 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=150&h=150&q=80'} 
-                alt="Brand Logo" 
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-slate-950 bg-slate-900 shadow-xl relative z-10"
-              />
-              <div className="pb-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">{currentProfile.business_name}</h1>
-                <p className="text-[11px] font-mono text-slate-500 mt-2 break-all max-w-xs sm:max-w-xl">
-                  Node Handle: {currentProfile.owner_wallet}
+          {/* GIS Satellite Aerial Photo Section */}
+          <div className="h-64 sm:h-80 w-full relative bg-slate-950 border-b border-slate-800/80">
+            <img 
+              src={landMapAsset} 
+              alt="Mollisonian Design Registry Satellite Frame"
+              className="w-full h-full object-cover opacity-75 grayscale hover:grayscale-0 transition-all duration-500 ease-in-out"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent select-none" />
+            
+            <button 
+              onClick={() => setActiveProfileId(null)}
+              className="absolute top-6 left-6 px-4 py-2 bg-slate-950/90 border border-slate-800 hover:border-slate-700 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-all duration-150 z-20 shadow-xl backdrop-blur-md active:scale-95"
+            >
+              ← Back to Directory
+            </button>
+
+            <div className="absolute top-6 right-6 bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-mono font-bold uppercase tracking-widest text-emerald-400 px-3 py-1.5 rounded-xl backdrop-blur-md shadow-lg select-none">
+              🌐 Live GIS Node Connection Locked
+            </div>
+          </div>
+
+          <div className="px-6 sm:px-10 pb-8 relative -mt-10 space-y-8">
+            
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-800/60 pb-6">
+              <div className="space-y-2">
+                <span className="text-[10px] font-mono tracking-widest uppercase font-black text-emerald-400 bg-emerald-500/5 border border-emerald-500/10 px-2.5 py-1 rounded-md shadow-inner">
+                  {currentProfile.category} Node Model
+                </span>
+                <h1 className="text-3xl sm:text-4xl font-bold text-white font-serif tracking-tight">{currentProfile.business_name}</h1>
+                <p className="text-[11px] font-mono text-slate-400 max-w-2xl break-all">
+                  📍 {currentProfile.physical_address || "14477 Cavendish Drive, Foley, AL"} &bull; Target Hub: <span className="text-slate-500">{currentProfile.owner_wallet}</span>
                 </p>
               </div>
+
+              {/* Permaculture GIS Onboarding Metrics */}
+              <div className="grid grid-cols-3 gap-2 bg-slate-950/80 border border-slate-800 p-2.5 rounded-2xl font-mono text-center shrink-0 shadow-xl backdrop-blur-md">
+                <div className="px-3 py-1">
+                  <span className="block text-[8px] uppercase font-bold text-slate-500 tracking-wider">Spatial Scale</span>
+                  <span className="text-xs font-bold text-white">0.3 Acres</span>
+                </div>
+                <div className="px-3 py-1 border-x border-slate-800/60">
+                  <span className="block text-[8px] uppercase font-bold text-slate-500 tracking-wider">USDA Hardiness</span>
+                  <span className="text-xs font-bold text-amber-400">8b / 9a</span>
+                </div>
+                <div className="px-3 py-1">
+                  <span className="block text-[8px] uppercase font-bold text-slate-500 tracking-wider">Catchment Basin</span>
+                  <span className="text-xs font-bold text-teal-400">Foley Basin</span>
+                </div>
+              </div>
             </div>
-            <span className="text-[10px] tracking-wider uppercase font-mono px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 self-start sm:self-auto sm:mb-2">
-              {currentProfile.category}
-            </span>
-          </div>
 
-          <hr className="border-slate-800/60" />
-
-          {/* MAIN BIOGRAPHY & PROVENANCE LOOPS */}
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <h3 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">Stewardship Metrology Statement</h3>
-              <p className="text-base text-slate-300 leading-relaxed text-left whitespace-pre-line font-serif italic max-w-3xl">
-                {currentProfile.detailed_bio || currentProfile.description}
+            {/* Grant Vectors Submodule */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/60 p-5 rounded-2xl shadow-xl space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                <span className="text-sm">💵</span>
+                <h4 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">USDA & Local Community Grant Vectors</h4>
+              </div>
+              <p className="text-xs text-slate-400 font-light leading-relaxed">
+                Governmental allocation vectors calculated based on matching state conservation parameters:
               </p>
+              <ul className="space-y-2.5 pl-1 pt-1 text-xs text-slate-300 font-serif leading-relaxed">
+                <li className="flex gap-2 items-start">
+                  <span className="text-emerald-500 select-none font-sans mt-0.5">&bull;</span>
+                  <span><strong>USDA NRCS EQIP Support:</strong> Direct cost-share matching available for local organic high-tunnels, cover cropping, and rotational silvopasture setups.</span>
+                </li>
+                <li className="flex gap-2 items-start">
+                  <span className="text-emerald-500 select-none font-sans mt-0.5">&bull;</span>
+                  <span><strong>State Watershed Management Incentives:</strong> Cost matching options for installing sediment retention structures and riparian buffers along slope lines.</span>
+                </li>
+              </ul>
             </div>
 
-            {/* Provenance Connections Loop */}
-            {profileConnections.length > 0 && (
-              <div className="bg-slate-900/20 border border-slate-800/40 p-5 rounded-2xl space-y-3 max-w-3xl">
-                <h5 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold">Verified Ecological Provenance Loop:</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {profileConnections.map((line: any, idx: number) => {
-                    const supplier = merchants.find(m => m.owner_wallet === line.supplier_wallet);
-                    return (
-                      <div key={idx} className="flex items-center justify-between gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/60 text-xs text-left">
-                        <div className="text-slate-300 truncate">
-                          <span className="text-emerald-400 mr-2">↳</span>
-                          <span>Inputs:</span>
-                          <strong 
-                            className="text-white ml-1 underline cursor-pointer hover:text-emerald-400"
-                            onClick={() => supplier && setActiveProfileId(supplier.id)}
-                          >
-                            {supplier ? supplier.business_name : 'Registry Partner'}
-                          </strong>
-                        </div>
-                        <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded shrink-0">
-                          {line.verified_ethic}
-                        </span>
-                      </div>
-                    );
-                  })}
+            {/* Sector Analysis Tool */}
+            <div className="space-y-4">
+              <div className="border-b border-slate-800 pb-1.5">
+                <h3 className="text-xs uppercase font-mono tracking-widest text-slate-400 font-black">Mollisonian Sector Analysis (Wild Energy Inputs)</h3>
+                <p className="text-[11px] text-slate-500 font-light mt-0.5">Mapping external energetic vectors passing through the property boundaries to optimize asset positioning.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+                <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold uppercase tracking-wider text-[11px]"><span>☀️</span> Radiation Sector (Sun Paths)</div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed font-sans font-light">Draft Studio: Open the node layout editor to configure your Solstice sun paths and solar capture ratios.</p>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2 text-slate-300 font-bold uppercase tracking-wider text-[11px]"><span>💨</span> Aeolian Sector (Winds)</div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed font-sans font-light">Draft Studio: Input native winter/summer wind currents and map upcoming windbreak perennial shelterbelt lines.</p>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2 text-red-400 font-bold uppercase tracking-wider text-[11px]"><span>🔥</span> Thermal Risk Sector (Wildfire)</div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed font-sans font-light">Draft Studio: Map out regional thermal risk factors, wind-driven paths, and dry vegetative fuel buffers.</p>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2 text-blue-400 font-bold uppercase tracking-wider text-[11px]"><span>💧</span> Topographic Gradient (Hydrology Flow)</div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed font-sans font-light">Draft Studio: Detail gradient contour water runoff paths to position swales, passive dams, and keylines.</p>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* SECURE SETTLEMENT ENGINE SUB-MODULE */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
-            
-            <div className="bg-slate-950 px-6 py-3 border-b border-slate-800/60 flex justify-between items-center text-[10px] font-mono tracking-wider text-slate-500">
-              <span className="uppercase tracking-[0.15em] text-emerald-400 font-black">Secure Settlement Core</span>
-              <span className="font-serif italic text-slate-400 hidden sm:inline">Non-custodial infrastructure loop via Stellar Asset Bridge</span>
             </div>
 
-            <div className="p-6 space-y-6">
-              
-              <div className="space-y-3 font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-800/50 p-4 rounded-xl">
-                <div className="flex justify-between items-center">
-                  <span>Allocation Category:</span>
-                  <span className="text-white font-bold tracking-wide">{currentProfile.category}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Stellar Target Handle:</span>
-                  <span className="text-white font-mono font-bold tracking-tight break-all pl-4 text-right">
-                    {currentProfile.owner_wallet}
-                  </span>
-                </div>
+            {/* Concentric Zoning Module */}
+            <div className="space-y-4 pt-2">
+              <div className="border-b border-slate-800 pb-1.5">
+                <h3 className="text-xs uppercase font-mono tracking-widest text-slate-400 font-black">Ecosystem Energy Efficiency (Mollison Zoning Maps)</h3>
+                <p className="text-[11px] text-slate-500 font-light mt-0.5">Arranging infrastructure radially based on frequency of human visitation loops to save manual tracking energy.</p>
               </div>
 
-              <hr className="border-slate-800/40" />
-
-              <div className="space-y-2">
-                <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1 text-left">
-                  Enter Transfer Amount
-                </label>
-                <div className="flex items-center bg-slate-950 px-5 py-4 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition h-14">
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    id={`profile-pay-${currentProfile.id}`}
-                    value={checkoutAmounts[currentProfile.id] || ''}
-                    onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
-                    className="w-full bg-transparent text-white text-xl font-mono focus:outline-none placeholder-slate-800"
-                  />
-                  <span className="text-xs font-mono font-black text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg ml-2 select-none shrink-0">
-                    USDC
-                  </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+                <div className="bg-slate-900/30 border border-slate-800/60 p-4 rounded-xl space-y-1">
+                  <span className="text-emerald-400 font-bold block">🏠 ZONE 1: Home Core</span>
+                  <p className="text-[11px] text-slate-400 font-sans font-light leading-relaxed">Kitchen gardens, seed beds, rainwater tanks, worm farms, and propagation setups requiring daily visit loops.</p>
+                </div>
+                <div className="bg-slate-900/30 border border-slate-800/60 p-4 rounded-xl space-y-1">
+                  <span className="text-teal-400 font-bold block">🐓 ZONE 2: Semi-Intensive</span>
+                  <p className="text-[11px] text-slate-400 font-sans font-light leading-relaxed">Poultry coops, honeybee hives, small multi-tier orchards, complex composting yards, and deep main-crop root vegetables.</p>
+                </div>
+                <div className="bg-slate-900/30 border border-slate-800/60 p-4 rounded-xl space-y-1">
+                  <span className="text-slate-400 font-bold block">🌲 ZONE 5: Wild Forage</span>
+                  <p className="text-[11px] text-slate-400 font-sans font-light leading-relaxed">Unmanaged wilderness ecosystems left to natural ecological succession loops. Sourcing wildlife research data lines.</p>
                 </div>
               </div>
-
-              <div className="pt-2">
-                <button
-                  onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
-                  className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest rounded-xl transition duration-200 shadow-lg shadow-emerald-500/10 tracking-[0.2em]"
-                >
-                  Authorize & Pay
-                </button>
-              </div>
-
             </div>
-          </div>
 
-          {/* Footer Metadata */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-2 text-[10px] font-mono text-slate-500 pt-4 border-t border-slate-800/40 text-left">
-            <span>Registry Location: {currentProfile.physical_address || 'Bioregional Zone 1'}</span>
-            <span>Contact Core: {currentProfile.contact_email || 'steward@nalo.network'}</span>
-            <span>Region Flag: {currentProfile.city}, {currentProfile.country_code}</span>
-          </div>
+            <hr className="border-slate-800/60" />
 
+            {/* Non-Custodial USDC In-Card Financial Widget */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
+              <div className="bg-slate-950 px-6 py-3 border-b border-slate-800/60 flex justify-between items-center text-[10px] font-mono tracking-wider text-slate-500">
+                <span className="uppercase tracking-[0.15em] text-emerald-400 font-black">Secure Settlement Core</span>
+                <span className="font-serif italic text-slate-400 hidden sm:inline">Direct non-custodial capital bridges via Stellar Ledger Network</span>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4 items-end">
+                  <div className="w-full space-y-2">
+                    <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1">
+                      Enter Transfer Amount (USDC)
+                    </label>
+                    <div className="flex items-center bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition h-12">
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        id={`profile-pay-${currentProfile.id}`}
+                        value={checkoutAmounts[currentProfile.id] || ''}
+                        onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
+                        className="w-full bg-transparent text-white text-md font-mono focus:outline-none placeholder-slate-800"
+                      />
+                      <span className="text-[10px] font-mono font-black text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md ml-2 select-none shrink-0">USDC</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
+                    className="w-full sm:w-48 h-12 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-200 shadow-md active:scale-95 shrink-0"
+                  >
+                    Authorize & Pay
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
-      </div>
-    );
+      );
+    } else {
+      // 🛍️ BRANCH B: COMMERCIAL ENTERPRISE LAYOUT FOR CAFS & ECO-STORES
+      return (
+        <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4 animate-fade-in">
+          <div className="h-48 sm:h-64 w-full relative bg-slate-900">
+            <img 
+              src={currentProfile.banner_url || currentProfile.image_url || 'https://images.unsplash.com/photo-1464225226634-758beb0a499a?auto=format&fit=crop&w=1200&q=80'} 
+              alt="Registry Node Banner"
+              className="w-full h-full object-cover opacity-50"
+            />
+            <button 
+              onClick={() => setActiveProfileId(null)}
+              className="absolute top-4 left-4 sm:top-6 sm:left-6 px-4 py-2 bg-slate-950/90 border border-slate-800 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 hover:text-white transition z-20"
+            >
+              ← Back to Network
+            </button>
+          </div>
+
+          <div className="p-4 sm:p-8 relative -mt-16 space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div className="flex items-end gap-4">
+                <img 
+                  src={currentProfile.logo_url || 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=150&h=150&q=80'} 
+                  alt="Brand Logo" 
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-slate-950 bg-slate-900 shadow-xl relative z-10"
+                />
+                <div className="pb-1 text-left">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-none">{currentProfile.business_name}</h1>
+                  <p className="text-[11px] font-mono text-slate-500 mt-2 break-all max-w-xs sm:max-w-xl">Node Handle: {currentProfile.owner_wallet}</p>
+                </div>
+              </div>
+              <span className="text-[10px] tracking-wider uppercase font-mono px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 self-start sm:self-auto sm:mb-2">
+                {currentProfile.category}
+              </span>
+            </div>
+
+            <hr className="border-slate-800/60" />
+
+            <div className="space-y-6">
+              <div className="space-y-3 text-left">
+                <h3 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">Stewardship Metrology Statement</h3>
+                <p className="text-base text-slate-300 leading-relaxed whitespace-pre-line font-serif italic max-w-3xl">
+                  {currentProfile.detailed_bio || currentProfile.description}
+                </p>
+              </div>
+
+              {profileConnections.length > 0 && (
+                <div className="bg-slate-900/20 border border-slate-800/40 p-5 rounded-2xl space-y-3 max-w-3xl">
+                  <h5 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold text-left">Verified Ecological Provenance Loop:</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {profileConnections.map((line: any, idx: number) => {
+                      const supplier = merchants.find(m => m.owner_wallet === line.supplier_wallet);
+                      return (
+                        <div key={idx} className="flex items-center justify-between gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/60 text-xs text-left">
+                          <div className="text-slate-300 truncate">
+                            <span className="text-emerald-400 mr-2">↳</span>
+                            <span>Inputs:</span>
+                            <strong className="text-white ml-1 underline cursor-pointer hover:text-emerald-400" onClick={() => supplier && setActiveProfileId(supplier.id)}>
+                              {supplier ? supplier.business_name : 'Registry Partner'}
+                            </strong>
+                          </div>
+                          <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded shrink-0">{line.verified_ethic}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
+              <div className="bg-slate-950 px-6 py-3 border-b border-slate-800/60 flex justify-between items-center text-[10px] font-mono tracking-wider text-slate-500">
+                <span className="uppercase tracking-[0.15em] text-emerald-400 font-black">Secure Settlement Core</span>
+                <span className="font-serif italic text-slate-400 hidden sm:inline">Non-custodial infrastructure loop via Stellar Asset Bridge</span>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="space-y-3 font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-800/50 p-4 rounded-xl text-left">
+                  <div className="flex justify-between items-center">
+                    <span>Allocation Category:</span>
+                    <span className="text-white font-bold tracking-wide">{currentProfile.category}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Stellar Target Handle:</span>
+                    <span className="text-white font-mono font-bold tracking-tight break-all pl-4 text-right">{currentProfile.owner_wallet}</span>
+                  </div>
+                </div>
+
+                <hr className="border-slate-800/40" />
+
+                <div className="space-y-2">
+                  <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1 text-left">Enter Transfer Amount</label>
+                  <div className="flex items-center bg-slate-950 px-5 py-4 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition h-14">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      id={`profile-pay-${currentProfile.id}`}
+                      value={checkoutAmounts[currentProfile.id] || ''}
+                      onChange={e => setCheckoutAmounts(prev => ({ ...prev, [currentProfile.id]: e.target.value }))}
+                      className="w-full bg-transparent text-white text-xl font-mono focus:outline-none placeholder-slate-800"
+                    />
+                    <span className="text-xs font-mono font-black text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg ml-2 select-none shrink-0">USDC</span>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])} className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-widest rounded-xl transition duration-200 shadow-lg tracking-[0.2em]">
+                    Authorize & Pay
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-2 text-[10px] font-mono text-slate-500 pt-4 border-t border-t-slate-800/40 text-left">
+              <span>Registry Location: {currentProfile.physical_address || 'Bioregional Zone 1'}</span>
+              <span>Contact Core: {currentProfile.contact_email || 'steward@nalo.network'}</span>
+              <span>Region Flag: {currentProfile.city}, {currentProfile.country_code}</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
   }
 
   // --- STANDARD GRID CATALOG VIEW ---
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6 mt-4">
-      
-      {/* Ethic Filter Bar */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-4 text-left">
         <div>
           <h3 className="text-lg font-bold text-white tracking-wide">Regenerative Commerce Network</h3>
@@ -277,7 +426,6 @@ export default function SacredMarketplace() {
         </div>
       </div>
 
-      {/* Grid of Interconnected Producers */}
       <div className="grid grid-cols-1 gap-6">
         {merchants.map((merchant) => {
           const activeConnections = supplyLines.filter(line => line.buyer_wallet === merchant.owner_wallet);
@@ -288,8 +436,6 @@ export default function SacredMarketplace() {
 
           return (
             <div key={merchant.id} className="bg-slate-900/40 border border-slate-800/60 rounded-3xl shadow-xl overflow-hidden backdrop-blur-sm hover:border-slate-700/80 transition duration-200 group flex flex-col">
-              
-              {/* Vibrant Merchant Cover Photo Segment */}
               <div className="h-44 w-full bg-slate-950 relative overflow-hidden border-b border-slate-800/40">
                 {merchant.image_url ? (
                   <img 
@@ -302,20 +448,14 @@ export default function SacredMarketplace() {
                     🌾 No Custom Image Registered
                   </div>
                 )}
-                
-                {/* Floating Category Badge Overlay */}
                 <span className="absolute top-4 left-4 bg-slate-950/90 border border-slate-800/60 text-[9px] font-mono uppercase font-bold tracking-widest text-emerald-400 px-2.5 py-1 rounded-xl backdrop-blur-md shadow-md">
                   {merchant.category}
                 </span>
               </div>
 
-              {/* Core Context Card Content */}
               <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-                
-                {/* Identity & Bio */}
                 <div className="flex justify-between items-start gap-4 text-left">
                   <div className="flex gap-4">
-                    {/* Brand Logo Avatar - Dynamically links from database fields */}
                     <img 
                       src={merchant.logo_url || 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=150&h=150&q=80'} 
                       alt={`${merchant.business_name} logo`} 
@@ -332,7 +472,6 @@ export default function SacredMarketplace() {
                     </div>
                   </div>
 
-                  {/* Direct Checkout Panel Embedded Controls */}
                   <div className="flex items-center gap-2 shrink-0 bg-slate-950 p-1.5 rounded-xl border border-slate-800/60 shadow-inner">
                     <input
                       type="number"
@@ -351,7 +490,6 @@ export default function SacredMarketplace() {
                   </div>
                 </div>
 
-                {/* Provenance Connections Matrix */}
                 {activeConnections.length > 0 && (
                   <div className="bg-slate-950/40 border border-slate-800/40 p-4 rounded-xl space-y-2 text-left">
                     <h5 className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-bold">Verified Ecological Provenance Loop:</h5>
@@ -381,12 +519,10 @@ export default function SacredMarketplace() {
                   </div>
                 )}
 
-                {/* Meta Address Footer */}
                 <div className="text-[9px] font-mono text-slate-600 flex justify-between pt-2 border-t border-slate-800/40 select-none">
                   <span>Network Routing Handle: {merchant.owner_wallet.slice(0, 8)}...{merchant.owner_wallet.slice(-8)}</span>
                   <span>Region Flag: {merchant.city}, {merchant.country_code}</span>
                 </div>
-
               </div>
             </div>
           );
