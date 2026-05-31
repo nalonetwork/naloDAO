@@ -15,6 +15,7 @@ interface Merchant {
   owner_wallet: string;
   city: string;
   country_code: string;
+  image_url?: string; // ◄── Added the explicit image property tracking field
   logo_url?: string;
   banner_url?: string;
   detailed_bio?: string;
@@ -101,12 +102,12 @@ export default function SacredMarketplace() {
     const profileConnections = supplyLines.filter(line => line.buyer_wallet === currentProfile.owner_wallet);
 
     return (
-      <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4">
+      <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4 animate-fade-in">
         
         {/* Banner */}
         <div className="h-48 sm:h-64 w-full relative bg-slate-900">
           <img 
-            src={currentProfile.banner_url || 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&w=1200&q=80'} 
+            src={currentProfile.banner_url || currentProfile.image_url || 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&w=1200&q=80'} 
             alt="Registry Node Banner"
             className="w-full h-full object-cover opacity-50"
           />
@@ -160,7 +161,7 @@ export default function SacredMarketplace() {
                   {profileConnections.map((line: any, idx: number) => {
                     const supplier = merchants.find(m => m.owner_wallet === line.supplier_wallet);
                     return (
-                      <div key={idx} className="flex items-center justify-between gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/60 text-xs">
+                      <div key={idx} className="flex items-center justify-between gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/60 text-xs text-left">
                         <div className="text-slate-300 truncate">
                           <span className="text-emerald-400 mr-2">↳</span>
                           <span>Inputs:</span>
@@ -212,7 +213,7 @@ export default function SacredMarketplace() {
 
               {/* Row 2: Broad Label + Massive Input Field Container */}
               <div className="space-y-2">
-                <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1">
+                <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1 text-left">
                   Enter Transfer Amount
                 </label>
                 <div className="flex items-center bg-slate-950 px-5 py-4 rounded-xl border border-slate-800 focus-within:border-emerald-500/60 transition h-14">
@@ -245,7 +246,7 @@ export default function SacredMarketplace() {
           </div>
 
           {/* Footer Metadata */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-2 text-[10px] font-mono text-slate-500 pt-4 border-t border-slate-800/40">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-2 text-[10px] font-mono text-slate-500 pt-4 border-t border-slate-800/40 text-left">
             <span>Registry Location: {currentProfile.physical_address || 'Bioregional Zone 1'}</span>
             <span>Contact Core: {currentProfile.contact_email || 'steward@nalo.network'}</span>
             <span>Region Flag: {currentProfile.city}, {currentProfile.country_code}</span>
@@ -260,7 +261,7 @@ export default function SacredMarketplace() {
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6 mt-4">
       {/* Ethic Filter Bar */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4 text-left">
         <div>
           <h3 className="text-lg font-bold text-white tracking-wide">Regenerative Commerce Network</h3>
           <p className="text-xs text-slate-400">Auditing asset flows through the lens of Sacred Economics.</p>
@@ -281,7 +282,7 @@ export default function SacredMarketplace() {
       </div>
 
       {/* Grid of Interconnected Producers */}
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-6">
         {merchants.map((merchant) => {
           const activeConnections = supplyLines.filter(line => line.buyer_wallet === merchant.owner_wallet);
           
@@ -290,87 +291,106 @@ export default function SacredMarketplace() {
           }
 
           return (
-            <div key={merchant.id} className="bg-slate-900/40 border border-slate-800/60 p-6 rounded-2xl shadow-xl backdrop-blur-sm space-y-4 hover:border-slate-700/80 transition duration-200">
+            <div key={merchant.id} className="bg-slate-900/40 border border-slate-800/60 rounded-3xl shadow-xl overflow-hidden backdrop-blur-sm hover:border-slate-700/80 transition duration-200 group flex flex-col">
               
-              {/* Header Info */}
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex gap-4">
+              {/* Vibrant Merchant Cover Photo Segment */}
+              <div className="h-44 w-full bg-slate-950 relative overflow-hidden border-b border-slate-800/40">
+                {merchant.image_url ? (
                   <img 
-                    src={merchant.logo_url || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=100&q=80'} 
-                    alt="Logo" 
-                    className="w-12 h-12 rounded-xl object-cover border border-slate-800 bg-slate-950 shrink-0"
+                    src={merchant.image_url} 
+                    alt={merchant.business_name}
+                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300 ease-in-out opacity-80 group-hover:opacity-100"
                   />
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-emerald-950/40 to-slate-950 flex items-center justify-center text-slate-600 font-mono text-[10px]">
+                    🌾 No Custom Image Registered
+                  </div>
+                )}
+                
+                {/* Floating Category Badge Overlay */}
+                <span className="absolute top-4 left-4 bg-slate-950/90 border border-slate-800/60 text-[9px] font-mono uppercase font-bold tracking-widest text-emerald-400 px-2.5 py-1 rounded-xl backdrop-blur-md shadow-md">
+                  {merchant.category}
+                </span>
+              </div>
+
+              {/* Core Context Card Content */}
+              <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                
+                {/* Identity & Bio */}
+                <div className="flex justify-between items-start gap-4 text-left">
+                  <div className="flex gap-4">
+                    <img 
+                      src={merchant.logo_url || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=100&q=80'} 
+                      alt="Logo" 
+                      className="w-12 h-12 rounded-xl object-cover border border-slate-800/80 bg-slate-950 shrink-0 shadow-lg relative -mt-10 z-10 bg-slate-900"
+                    />
+                    <div>
                       <h4 
                         onClick={() => setActiveProfileId(merchant.id)}
                         className="text-md font-bold text-white hover:text-emerald-400 cursor-pointer transition underline decoration-transparent hover:decoration-emerald-500/40 underline-offset-4"
                       >
                         {merchant.business_name}
                       </h4>
-                      <span className="text-[10px] tracking-wider uppercase font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        {merchant.category}
-                      </span>
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-2 font-light leading-relaxed">{merchant.description}</p>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-2">{merchant.description}</p>
+                  </div>
+
+                  {/* Direct Checkout Panel Embedded Controls */}
+                  <div className="flex items-center gap-2 shrink-0 bg-slate-950 p-1.5 rounded-xl border border-slate-800/60 shadow-inner">
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={checkoutAmounts[merchant.id] || ''}
+                      onChange={e => setCheckoutAmounts(prev => ({ ...prev, [merchant.id]: e.target.value }))}
+                      className="w-14 bg-transparent text-white text-xs font-mono text-right focus:outline-none placeholder-slate-800 pr-1"
+                    />
+                    <span className="text-[9px] font-mono text-slate-600 font-bold select-none">USDC</span>
+                    <button
+                      onClick={() => handleSacredPayment(merchant.owner_wallet, merchant.id.toString())}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black px-3 py-1.5 rounded-lg transition active:scale-95 uppercase tracking-wider"
+                    >
+                      Pay
+                    </button>
                   </div>
                 </div>
 
-                {/* Direct Checkout Panel */}
-                <div className="flex items-center gap-2 shrink-0 bg-slate-950 p-2 rounded-xl border border-slate-800/60">
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    value={checkoutAmounts[merchant.id] || ''}
-                    onChange={e => setCheckoutAmounts(prev => ({ ...prev, [merchant.id]: e.target.value }))}
-                    className="w-16 bg-transparent text-white text-xs font-mono text-right focus:outline-none placeholder-slate-700"
-                  />
-                  <span className="text-[10px] font-mono text-slate-500 mr-1">USDC</span>
-                  <button
-                    onClick={() => handleSacredPayment(merchant.owner_wallet, merchant.id.toString())}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg transition"
-                  >
-                    Pay
-                  </button>
-                </div>
-              </div>
-
-              {/* Provenance Connections Matrix */}
-              {activeConnections.length > 0 && (
-                <div className="bg-slate-950/60 border border-slate-800/40 p-3.5 rounded-xl space-y-2">
-                  <h5 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold">Verified Ecological Provenance Loop:</h5>
-                  {activeConnections.map((line: any, idx: number) => {
-                    const supplier = merchants.find(m => m.owner_wallet === line.supplier_wallet);
-                    return (
-                      <div key={idx} className="flex items-center justify-between gap-4 text-xs">
-                        <div className="flex items-center gap-1.5 text-slate-300">
-                          <span className="text-emerald-500">↳</span>
-                          <span>Partnered directly with</span>
-                          <strong 
-                            onClick={() => supplier && setActiveProfileId(supplier.id)}
-                            className="text-white font-medium underline decoration-emerald-500/30 cursor-pointer hover:text-emerald-400 transition"
-                          >
-                            {supplier ? supplier.business_name : 'Local Producer'}
-                          </strong>
+                {/* Provenance Connections Matrix */}
+                {activeConnections.length > 0 && (
+                  <div className="bg-slate-950/40 border border-slate-800/40 p-4 rounded-xl space-y-2 text-left">
+                    <h5 className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-bold">Verified Ecological Provenance Loop:</h5>
+                    {activeConnections.map((line: any, idx: number) => {
+                      const supplier = merchants.find(m => m.owner_wallet === line.supplier_wallet);
+                      return (
+                        <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs border-t border-slate-900/60 first:border-t-0 pt-2 first:pt-0">
+                          <div className="flex items-center gap-1.5 text-slate-300">
+                            <span className="text-emerald-500 font-bold">↳</span>
+                            <span className="text-slate-400 font-light">Partnered directly with</span>
+                            <strong 
+                              onClick={() => supplier && setActiveProfileId(supplier.id)}
+                              className="text-white font-medium underline decoration-emerald-500/30 cursor-pointer hover:text-emerald-400 transition"
+                            >
+                              {supplier ? supplier.business_name : 'Local Producer'}
+                            </strong>
+                          </div>
+                          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                            <span className="text-[11px] italic text-slate-400 font-light">"{line.relationship_details}"</span>
+                            <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md font-bold shrink-0">
+                              {line.verified_ethic}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] italic text-slate-400">"{line.relationship_details}"</span>
-                          <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">
-                            {line.verified_ethic}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Meta Address Footer */}
+                <div className="text-[9px] font-mono text-slate-600 flex justify-between pt-2 border-t border-slate-800/40 select-none">
+                  <span>Network Routing Handle: {merchant.owner_wallet.slice(0, 8)}...{merchant.owner_wallet.slice(-8)}</span>
+                  <span>Region Flag: {merchant.city}, {merchant.country_code}</span>
                 </div>
-              )}
 
-              {/* Meta Address Footer */}
-              <div className="text-[9px] font-mono text-slate-600 flex justify-between pt-2 border-t border-slate-800/40">
-                <span>Network Routing Handle: {merchant.owner_wallet}</span>
-                <span>Region Flag: {merchant.city}, {merchant.country_code}</span>
               </div>
-
             </div>
           );
         })}
