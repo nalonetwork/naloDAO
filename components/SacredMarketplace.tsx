@@ -15,7 +15,7 @@ interface Merchant {
   owner_wallet: string;
   city: string;
   country_code: string;
-  image_url?: string; // ◄── Added the explicit image property tracking field
+  image_url?: string;
   logo_url?: string;
   banner_url?: string;
   detailed_bio?: string;
@@ -104,10 +104,10 @@ export default function SacredMarketplace() {
     return (
       <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4 animate-fade-in">
         
-        {/* Banner */}
+        {/* Banner Segment - Dynamically linked from database */}
         <div className="h-48 sm:h-64 w-full relative bg-slate-900">
           <img 
-            src={currentProfile.banner_url || currentProfile.image_url || 'https://images.unsplash.com/photo-1500485035595-cbe6f645feb1?auto=format&fit=crop&w=1200&q=80'} 
+            src={currentProfile.banner_url || currentProfile.image_url || 'https://images.unsplash.com/photo-1464225226634-758beb0a499a?auto=format&fit=crop&w=1200&q=80'} 
             alt="Registry Node Banner"
             className="w-full h-full object-cover opacity-50"
           />
@@ -126,7 +126,7 @@ export default function SacredMarketplace() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="flex items-end gap-4">
               <img 
-                src={currentProfile.logo_url || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=100&q=80'} 
+                src={currentProfile.logo_url || 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=150&h=150&q=80'} 
                 alt="Brand Logo" 
                 className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-slate-950 bg-slate-900 shadow-xl relative z-10"
               />
@@ -183,19 +183,16 @@ export default function SacredMarketplace() {
             )}
           </div>
 
-          {/* DYNAMIC COMPONENT: PERFECT HORIZONTAL STACK ACROSS ALL SCREEN SIZES */}
+          {/* SECURE SETTLEMENT ENGINE SUB-MODULE */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden w-full">
             
-            {/* Top Header Row */}
             <div className="bg-slate-950 px-6 py-3 border-b border-slate-800/60 flex justify-between items-center text-[10px] font-mono tracking-wider text-slate-500">
               <span className="uppercase tracking-[0.15em] text-emerald-400 font-black">Secure Settlement Core</span>
               <span className="font-serif italic text-slate-400 hidden sm:inline">Non-custodial infrastructure loop via Stellar Asset Bridge</span>
             </div>
 
-            {/* Unified Vertical Form Flow Area */}
             <div className="p-6 space-y-6">
               
-              {/* Row 1: Flat Information Display Table Metrics */}
               <div className="space-y-3 font-mono text-xs text-slate-400 bg-slate-950/40 border border-slate-800/50 p-4 rounded-xl">
                 <div className="flex justify-between items-center">
                   <span>Allocation Category:</span>
@@ -211,7 +208,6 @@ export default function SacredMarketplace() {
 
               <hr className="border-slate-800/40" />
 
-              {/* Row 2: Broad Label + Massive Input Field Container */}
               <div className="space-y-2">
                 <label htmlFor={`profile-pay-${currentProfile.id}`} className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold px-1 text-left">
                   Enter Transfer Amount
@@ -232,7 +228,6 @@ export default function SacredMarketplace() {
                 </div>
               </div>
 
-              {/* Row 3: Wide Layout Submission Action Button */}
               <div className="pt-2">
                 <button
                   onClick={() => handleSacredPayment(currentProfile.owner_wallet, currentProfile.id.toString(), checkoutAmounts[currentProfile.id])}
@@ -260,6 +255,7 @@ export default function SacredMarketplace() {
   // --- STANDARD GRID CATALOG VIEW ---
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6 mt-4">
+      
       {/* Ethic Filter Bar */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-4 text-left">
         <div>
@@ -299,7 +295,7 @@ export default function SacredMarketplace() {
                   <img 
                     src={merchant.image_url} 
                     alt={merchant.business_name}
-                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300 ease-in-out opacity-80 group-hover:opacity-100"
+                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300 ease-in-out opacity-85 group-hover:opacity-100"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-emerald-950/40 to-slate-950 flex items-center justify-center text-slate-600 font-mono text-[10px]">
@@ -319,9 +315,10 @@ export default function SacredMarketplace() {
                 {/* Identity & Bio */}
                 <div className="flex justify-between items-start gap-4 text-left">
                   <div className="flex gap-4">
+                    {/* Brand Logo Avatar - Dynamically links from database fields */}
                     <img 
-                      src={merchant.logo_url || 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=100&q=80'} 
-                      alt="Logo" 
+                      src={merchant.logo_url || 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=150&h=150&q=80'} 
+                      alt={`${merchant.business_name} logo`} 
                       className="w-12 h-12 rounded-xl object-cover border border-slate-800/80 bg-slate-950 shrink-0 shadow-lg relative -mt-10 z-10 bg-slate-900"
                     />
                     <div>
