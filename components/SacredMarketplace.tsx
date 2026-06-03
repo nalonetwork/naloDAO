@@ -102,8 +102,13 @@ export default function SacredMarketplace() {
   if (activeProfileId && currentProfile) {
     const profileConnections = supplyLines.filter(line => line.buyer_wallet === currentProfile.owner_wallet);
     
-    // Check if the current profile represents an intensive permaculture land project structure
-    const isPermacultureRegistryNode = currentProfile.category?.toLowerCase() === 'agriculture' || currentProfile.business_name.toLowerCase().includes('roe');
+    // 🌟 STABLE INTERCEPTOR LOGIC: Checks category, names, and bio profiles for keyword alignment to catch all land projects safely
+    const isPermacultureRegistryNode = 
+      currentProfile.category?.toLowerCase() === 'agriculture' || 
+      currentProfile.business_name?.toLowerCase().includes('roe') ||
+      currentProfile.description?.toLowerCase().includes('permaculture') ||
+      currentProfile.description?.toLowerCase().includes('acre') ||
+      currentProfile.description?.toLowerCase().includes('farm');
 
     if (isPermacultureRegistryNode) {
       // 🌿 BRANCH A: HIGH-UTILITY MOLLISONIAN PERMACULTURE DESIGN CORE
@@ -214,6 +219,100 @@ export default function SacredMarketplace() {
               </div>
             </div>
 
+            {/* INTEGRATED MOLLISONIAN TREE VALUE INDEX (TVI) CALCULATOR */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-800/80 p-6 rounded-2xl shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-md">🌳</span>
+                  <h4 className="text-xs uppercase font-mono tracking-widest text-emerald-400 font-bold">
+                    Tree Value Index (TVI) Assetization Engine
+                  </h4>
+                </div>
+                <span className="text-[9px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  Whitepaper Sec. 4.5
+                </span>
+              </div>
+              
+              <p className="text-xs text-slate-400 font-light leading-relaxed">
+                In accordance with NaloDAO Core Monetary Principles, living trees function as active infrastructure. 
+                Rather than calculating value through extraction (timber logs), the ledger aggregates continuous ecosystem service vectors:
+              </p>
+
+              {/* Dynamic Interactive Toggles */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-xl space-y-3 font-mono text-xs">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Registry Audit Inputs</span>
+                  
+                  <div className="space-y-1">
+                    <label className="text-slate-400 block text-[11px]">Count Active Living Trees:</label>
+                    <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 focus-within:border-emerald-500/40">
+                      <input 
+                        type="number" 
+                        defaultValue="24" 
+                        id="tvi-tree-count"
+                        className="w-full bg-transparent text-white font-bold focus:outline-none"
+                        onChange={() => {
+                          const count = parseFloat((document.getElementById('tvi-tree-count') as HTMLInputElement)?.value || '0');
+                          const valueSpan = document.getElementById('tvi-calc-output');
+                          const tokenSpan = document.getElementById('tvi-token-output');
+                          if (valueSpan && tokenSpan) {
+                            const rawValue = count * 540; 
+                            valueSpan.innerText = `$${rawValue.toLocaleString()}`;
+                            tokenSpan.innerText = `${(rawValue / 0.15).toLocaleString()} NALO`;
+                          }
+                        }}
+                      />
+                      <span className="text-[10px] text-slate-500 font-bold ml-1 shrink-0">TREES</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mathematical Output Ledger Index Breakdown */}
+                <div className="bg-slate-950/30 border border-slate-900 p-4 rounded-xl flex flex-col justify-between space-y-3 font-mono text-xs">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Aggregated System Valuation</span>
+                  
+                  <div className="space-y-1 text-left">
+                    <span className="text-[10px] text-slate-500 block uppercase">Real-World Environmental Asset Value:</span>
+                    <div className="text-2xl font-black text-white font-mono tracking-tight" id="tvi-calc-output">
+                      $12,960.00
+                    </div>
+                    <span className="text-[10px] text-emerald-400 bg-emerald-500/5 border border-emerald-500/10 px-1.5 py-0.5 rounded block w-max mt-1 font-bold" id="tvi-token-output">
+                      86,400 NALO Mint Capacity
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Valuation Vector Matrix Table */}
+              <div className="bg-slate-950/40 border border-slate-900/60 rounded-xl overflow-hidden text-[10px] font-mono">
+                <div className="grid grid-cols-3 bg-slate-950 px-4 py-2 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-900">
+                  <span>Valuation Vector</span>
+                  <span className="text-center">Metric Standard</span>
+                  <span className="text-right">Value Weight / Tree</span>
+                </div>
+                <div className="px-4 py-2 border-b border-slate-900/40 flex justify-between text-slate-300">
+                  <span className="w-1/3 text-left">🌱 Replacement Cost (RC)</span>
+                  <span className="w-1/3 text-center text-slate-500">Nursery Stock Parity</span>
+                  <span className="w-1/3 text-right text-white font-bold">$100.00</span>
+                </div>
+                <div className="px-4 py-2 border-b border-slate-900/40 flex justify-between text-slate-300">
+                  <span className="w-1/3 text-left">🐓 Ecological Contribution (EC)</span>
+                  <span className="w-1/3 text-center text-slate-500">Habitat / Soil Web Inoculation</span>
+                  <span className="w-1/3 text-right text-white font-bold">$250.00</span>
+                </div>
+                <div className="px-4 py-2 border-b border-slate-900/40 flex justify-between text-slate-300">
+                  <span className="w-1/3 text-left">🛢️ Carbon Sequestration (CC)</span>
+                  <span className="w-1/3 text-center text-slate-500">48 lbs CO2 Reabsorb Annually</span>
+                  <span className="w-1/3 text-right text-white font-bold">$40.00</span>
+                </div>
+                <div className="px-4 py-2 flex justify-between text-slate-300">
+                  <span className="w-1/3 text-left">❤️ Beauty / Cultural (BC)</span>
+                  <span className="w-1/3 text-center text-slate-500">Bioregional Preservation Balance</span>
+                  <span className="w-1/3 text-right text-white font-bold">$100.00</span>
+                </div>
+              </div>
+            </div>
+
             {/* Concentric Zoning Module */}
             <div className="space-y-4 pt-2">
               <div className="border-b border-slate-800 pb-1.5">
@@ -279,7 +378,7 @@ export default function SacredMarketplace() {
         </div>
       );
     } else {
-      // 🛍️ BRANCH B: COMMERCIAL ENTERPRISE LAYOUT FOR CAFS & ECO-STORES
+      // 🛍️ BRANCH B: COMMERCIAL ENTERPRISE LAYOUT FOR CAFE & ECO-STORES
       return (
         <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4 animate-fade-in">
           <div className="h-48 sm:h-64 w-full relative bg-slate-900">
