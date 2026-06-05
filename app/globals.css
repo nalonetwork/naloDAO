@@ -8,27 +8,8 @@
   }
   
   html, body {
-    background-color: #06090c !important;
-    color: #f1f5f9 !important;
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #0c1115 !important;
+    background: radial-gradient(circle at top right, #1a232a, #0c1115) fixed !important;
+    color: #f8fafc !important;
   }
-}
-
-/* Global Reset to eliminate raw browser input frames */
-input, select, textarea {
-  background: transparent;
-  border: none;
-  color: inherit;
-}
-
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: transparent;
-}
-
-/* Strip increment arrows on numeric inputs for a unified feel */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
 }
