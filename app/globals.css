@@ -4,26 +4,10 @@
 
 :root {
   color-scheme: dark;
-  background-color: #05080a !important;
+  background-color: #0c1115 !important;
 }
 
 html, body {
-  background-color: #05080a !important;
-  color: #e2e8f0 !important;
-  font-family: var(--font-sans), sans-serif;
-}
-
-/* Custom minimal scrollbar styling for a high-end feel */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #05080a;
-}
-::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 99px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #10b981;
+  background-color: #0c1115 !important;
+  color: #f8fafc !important;
 }
