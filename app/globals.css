@@ -2,12 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-  background-color: #0c1115 !important;
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  html, body {
+    background-color: #0b0f12 !important;
+    color: #f1f5f9 !important;
+    font-family: var(--font-sans), sans-serif;
+  }
 }
 
-html, body {
-  background-color: #0c1115 !important;
-  color: #f8fafc !important;
+/* Elegant input utility resets to completely wipe the 995 box outlines */
+input, select, textarea, button {
+  border: none;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
 }
