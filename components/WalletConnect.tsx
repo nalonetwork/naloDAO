@@ -16,11 +16,9 @@ export default function WalletConnect() {
   const balanceIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const kitInstanceRef = useRef<any>(null); 
 
- // Pulls the active live Circle USDC balance directly from the raw Horizon JSON endpoint
   const fetchLiveUSDCBalance = async (address: string) => {
     if (!address) return;
     try {
-      // 1. Fetch the raw, unmasked JSON account details directly from the public live ledger endpoint
       const response = await fetch(`https://horizon.stellar.org/accounts/${address}?cb=${Date.now()}`);
       
       if (!response.ok) {
@@ -36,19 +34,16 @@ export default function WalletConnect() {
 
       const circleIssuerKey = "GA5ZBLAMTP6F34IEU6CHH77WCQE75577VAFZOMZIBZ36EIKKAA5CTFHT".toLowerCase();
 
-      // 2. Scan the raw JSON balances array using a bulletproof string check
       const targetAsset = accountData.balances.find((b: any) => {
         const hasUsdcCode = b.asset_code && b.asset_code.toUpperCase() === "USDC";
         const hasValidIssuer = b.asset_issuer && b.asset_issuer.toLowerCase() === circleIssuerKey;
         return hasUsdcCode && hasValidIssuer;
       });
 
-      // 3. If found, parse and show the true ledger balance instantly
       if (targetAsset && targetAsset.balance) {
         const parsedBalance = parseFloat(targetAsset.balance).toFixed(2);
         setUsdcBalance(parsedBalance);
       } else {
-        // Fallback: Check for any open alternative USDC parameters
         const alternateAsset = accountData.balances.find((b: any) => b.asset_code && b.asset_code.toUpperCase() === "USDC");
         if (alternateAsset && alternateAsset.balance) {
           setUsdcBalance(parseFloat(alternateAsset.balance).toFixed(2));
@@ -66,7 +61,6 @@ export default function WalletConnect() {
     setWalletAddress(address);
     localStorage.setItem('nalo_wallet_address', address);
     
-    // Trigger an immediate balance check the moment they connect
     fetchLiveUSDCBalance(address);
 
     const { error: dbError } = await supabase
@@ -82,7 +76,6 @@ export default function WalletConnect() {
       setWalletAddress(savedAddress);
       fetchLiveUSDCBalance(savedAddress);
 
-      // Set up a quiet background thread loop to update their balance every 10 seconds
       balanceIntervalRef.current = setInterval(() => {
         fetchLiveUSDCBalance(savedAddress);
       }, 10000);
@@ -93,10 +86,10 @@ export default function WalletConnect() {
       isInitializedRef.current = true;
 
       try {
-        const sdkModule = await import('@creit.tech/stellar-wallets-kit/sdk');
+        const sdkModule = await import('@stellar/stellar-sdk');
         const utilsModule = await import('@creit.tech/stellar-wallets-kit/modules/utils');
 
-        const Kit: any = sdkModule.StellarWalletsKit || (sdkModule as any).default?.StellarWalletsKit;
+        const Kit: any = (sdkModule as any).StellarWalletsKit || (sdkModule as any).default?.StellarWalletsKit;
         const getDefaultModules: any = utilsModule.defaultModules || (utilsModule as any).default?.defaultModules;
 
         if (!Kit) return;
@@ -124,7 +117,6 @@ export default function WalletConnect() {
               saveAuthenticatedSession(address);
               if (intervalRef.current) clearInterval(intervalRef.current);
               
-              // Start the balance background loop thread for newly connected profiles
               balanceIntervalRef.current = setInterval(() => {
                 fetchLiveUSDCBalance(address);
               }, 10000);
@@ -162,29 +154,30 @@ export default function WalletConnect() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center font-mono">
       {walletAddress ? (
-        <div className="flex items-center gap-4 bg-slate-900 border border-emerald-500/20 pl-4 pr-3 py-2 rounded-2xl shadow-2xl backdrop-blur-md">
+        <div className="flex items-center gap-4 bg-slate-950/60 border border-slate-800/80 pl-4 pr-3 py-2 rounded-xl shadow-2xl backdrop-blur-md relative group">
+          <div className="absolute left-0 top-0 h-full w-[2px] bg-emerald-500/60 shadow-lg" />
           
           {/* Real-time Balance Display Tracker */}
           <div className="flex flex-col items-end border-r border-slate-800 pr-4 text-right">
-            <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-bold">Liquid Balance</span>
-            <span className="text-sm font-bold font-mono text-white flex items-center gap-1">
-              <span className="text-xs text-emerald-400 font-medium">$</span>
+            <span className="text-[8px] uppercase tracking-widest text-slate-500 font-bold">Liquid Balance</span>
+            <span className="text-xs font-black text-white flex items-center gap-0.5 mt-0.5">
+              <span className="text-[10px] text-emerald-400 font-bold select-none">$</span>
               {usdcBalance}
-              <span className="text-[10px] text-slate-400 font-medium tracking-wide ml-0.5">USDC</span>
+              <span className="text-[9px] text-slate-500 font-bold tracking-normal ml-0.5">USDC</span>
             </span>
           </div>
 
           {/* Connection Identity Info */}
           <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-1.5 w-1.5 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
             </span>
             <div className="flex flex-col items-start text-left">
-              <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-bold">Passport Verified</span>
-              <span className="text-xs text-emerald-400 font-mono tracking-wider">
+              <span className="text-[8px] uppercase tracking-widest text-slate-500 font-bold">Passport Active</span>
+              <span className="text-xs text-emerald-400 font-bold tracking-wide mt-0.5">
                 {walletAddress.slice(0, 5)}...{walletAddress.slice(-5)}
               </span>
             </div>
@@ -192,16 +185,16 @@ export default function WalletConnect() {
 
           <button 
             onClick={handleDisconnect}
-            className="bg-slate-950 hover:bg-red-500 hover:text-white border border-slate-800 hover:border-red-500 text-slate-400 text-xs font-mono px-3 py-2 rounded-xl transition duration-200 active:scale-95 group flex items-center gap-1"
+            className="bg-slate-900 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 text-[10px] font-bold px-3 py-1.5 rounded-lg transition duration-150 active:scale-[0.98] uppercase tracking-wider h-8 flex items-center gap-1 ml-1"
           >
             <span>Disconnect</span>
-            <span className="text-[10px] opacity-60 group-hover:opacity-100">✕</span>
+            <span className="text-[9px] opacity-40 font-sans">✕</span>
           </button>
         </div>
       ) : (
         <div 
           ref={containerRef} 
-          className="[&>button]:bg-emerald-500 [&>button]:hover:bg-emerald-600 [&>button]:!text-slate-950 [&>button]:font-extrabold [&>button]:px-6 [&>button]:py-3 [&>button]:!rounded-xl [&>button]:text-sm [&>button]:transition-all [&>button]:duration-200 [&>button]:shadow-lg [&>button]:shadow-emerald-500/10 [&>button]:active:scale-95"
+          className="[&>button]:!bg-gradient-to-r [&>button]:from-emerald-500 [&>button]:to-teal-600 [&>button]:hover:brightness-110 [&>button]:!text-slate-950 [&>button]:!font-black [&>button]:!font-mono [&>button]:!text-[10px] [&>button]:!uppercase [&>button]:!tracking-widest [&>button]:px-5 [&>button]:py-2.5 [&>button]:!rounded-lg [&>button]:!transition-all [&>button]:!duration-150 [&>button]:shadow-xl [&>button]:active:scale-[0.99]"
         />
       )}
     </div>

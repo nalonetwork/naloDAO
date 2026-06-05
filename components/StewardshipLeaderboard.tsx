@@ -15,7 +15,7 @@ export default function StewardshipLeaderboard() {
         .from('users')
         .select('wallet_address, stewardship_score')
         .order('stewardship_score', { ascending: false })
-        .limit(10); // Show top 10 community leaders
+        .limit(10);
 
       if (error) throw error;
       setLeaders(data || []);
@@ -30,27 +30,28 @@ export default function StewardshipLeaderboard() {
     fetchLeaderboard();
   }, []);
 
-  // Custom permaculture-themed ranking badges based on their community score thresholds
   const getStewardRank = (score: number) => {
-    if (score >= 100) return { title: '🌳 Ancient Oak', style: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' };
-    if (score >= 50) return { title: '🌿 Fruit Tree', style: 'bg-teal-500/20 text-teal-400 border-teal-500/30' };
-    if (score >= 25) return { title: '🌱 Sprout Steward', style: 'bg-amber-500/20 text-amber-300 border-amber-400/30' };
-    return { title: '🌾 Seedling', style: 'bg-slate-800 text-slate-400 border-slate-700/60' };
+    if (score >= 100) return { title: '🌳 Ancient Oak', style: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-sm shadow-emerald-500/5' };
+    if (score >= 50) return { title: '🌿 Fruit Tree', style: 'bg-teal-500/10 text-teal-400 border-teal-500/20' };
+    if (score >= 25) return { title: '🌱 Sprout Steward', style: 'bg-amber-500/10 text-amber-300 border-amber-500/20' };
+    return { title: '🌾 Seedling', style: 'bg-slate-900 text-slate-500 border-slate-800' };
   };
 
-  if (loading) return <p className="text-xs text-slate-500 font-mono text-center py-4">Compiling community impact data...</p>;
+  if (loading) return <p className="text-[10px] font-mono uppercase tracking-widest text-slate-500 text-center py-4">Compiling community impact data...</p>;
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl shadow-xl space-y-4 text-left backdrop-blur-md">
-      <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
+    <div className="bg-slate-950/40 border border-slate-800/60 p-5 rounded-xl shadow-2xl space-y-4 text-left backdrop-blur-md relative overflow-hidden group w-full">
+      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 to-purple-600" />
+      
+      <div className="flex items-center justify-between border-b border-slate-900 pb-3">
         <div>
-          <h3 className="font-serif text-md font-bold text-white">Bioregional Hall of Fame</h3>
-          <p className="text-[11px] text-slate-400">Honoring the citizens investing the most energy into our local economy.</p>
+          <h3 className="font-sans text-sm font-bold uppercase tracking-wider text-white">Bioregional Hall of Fame</h3>
+          <p className="text-[11px] text-slate-500 font-light mt-0.5">Honoring the citizens investing the most energy into our local economy.</p>
         </div>
-        <button onClick={fetchLeaderboard} className="text-[10px] font-mono text-emerald-400 hover:underline">⟳ Sync</button>
+        <button onClick={fetchLeaderboard} className="text-[10px] font-mono font-bold text-emerald-400 hover:text-emerald-300 bg-slate-900 border border-slate-800 px-2 py-1 rounded-md transition duration-150">Sync ⟳</button>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 max-h-[380px] overflow-y-auto no-scrollbar pr-1">
         {leaders.map((leader, index) => {
           const rank = getStewardRank(leader.stewardship_score);
           const isTopThree = index < 3;
@@ -58,34 +59,34 @@ export default function StewardshipLeaderboard() {
           return (
             <div 
               key={leader.wallet_address} 
-              className={`flex items-center justify-between p-3 rounded-xl border transition ${
-                isTopThree ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-900/20 border-transparent'
+              className={`flex items-center justify-between p-3 rounded-xl border transition duration-150 relative overflow-hidden ${
+                isTopThree ? 'bg-slate-950/80 border-slate-800/80 shadow-md' : 'bg-slate-900/10 border-slate-900/40'
               }`}
             >
               <div className="flex items-center gap-3">
                 {/* Visual Rank Placement Numbers */}
-                <span className={`w-5 h-5 flex items-center justify-center rounded-full text-xs font-mono font-black ${
-                  index === 0 ? 'bg-amber-400 text-slate-950 shadow-md' :
-                  index === 1 ? 'bg-slate-300 text-slate-950' :
-                  index === 2 ? 'bg-amber-600 text-white' : 'text-slate-500'
+                <span className={`w-5 h-5 flex items-center justify-center rounded-lg text-[10px] font-mono font-black border tracking-tighter shrink-0 ${
+                  index === 0 ? 'bg-gradient-to-tr from-amber-400 to-yellow-300 text-slate-950 border-amber-400 shadow-md' :
+                  index === 1 ? 'bg-slate-200 text-slate-950 border-slate-300' :
+                  index === 2 ? 'bg-amber-700 text-white border-amber-600' : 'text-slate-500 border-slate-800 bg-slate-950/40'
                 }`}>
                   {index + 1}
                 </span>
 
-                <div className="flex flex-col">
-                  <span className="text-xs font-mono text-slate-300 font-medium">
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-mono text-slate-300 font-bold select-all">
                     {leader.wallet_address.slice(0, 6)}...{leader.wallet_address.slice(-6)}
                   </span>
-                  <span className={`text-[9px] uppercase font-mono px-1.5 py-0.5 rounded border mt-1 font-bold w-max ${rank.style}`}>
+                  <span className={`text-[8px] uppercase font-mono tracking-wider px-1.5 py-0.5 rounded border mt-1 font-bold w-max ${rank.style}`}>
                     {rank.title}
                   </span>
                 </div>
               </div>
 
               {/* Dynamic Stewardship Score Display */}
-              <div className="text-right">
-                <span className="text-xs font-bold font-mono text-emerald-400">{leader.stewardship_score}</span>
-                <span className="block text-[8px] font-mono uppercase tracking-wider text-slate-500 font-bold">Steward Points</span>
+              <div className="text-right font-mono">
+                <span className="text-sm font-black text-emerald-400 tracking-tight">{leader.stewardship_score}</span>
+                <span className="block text-[8px] uppercase tracking-widest text-slate-600 font-bold mt-0.5">Points</span>
               </div>
             </div>
           );

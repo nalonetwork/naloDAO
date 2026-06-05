@@ -20,7 +20,6 @@ export default function MerchantRegister() {
     setStatus('saving');
 
     try {
-      // 1. Fetch the most recent connected wallet address registered in your active Supabase users ledger
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('wallet_address')
@@ -39,7 +38,6 @@ export default function MerchantRegister() {
         return;
       }
 
-      // 2. Safely insert the new merchant row bound directly to that verified address
       const { error } = await supabase
         .from('merchants')
         .upsert([
@@ -50,7 +48,7 @@ export default function MerchantRegister() {
             category: category,
             city: city,
             country_code: country.toUpperCase(),
-            is_verified: false // Awaiting future NaloDAO consensus badges
+            is_verified: false
           }
         ], { onConflict: 'owner_wallet' });
 
@@ -67,47 +65,62 @@ export default function MerchantRegister() {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
-      <h2 className="text-xl font-bold text-white mb-2">Join NaloDAO Circular Economy</h2>
-      <p className="text-xs text-slate-400 mb-6">List your sustainable business and accept direct, compliant stablecoin payments.</p>
+    <div className="w-full max-w-xl mx-auto bg-[#0b0f13] border border-slate-800/80 p-6 rounded-xl shadow-2xl relative overflow-hidden text-slate-200">
+      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 to-purple-500" />
+      <div className="text-left">
+        <h2 className="text-base font-bold uppercase tracking-wider text-white">Join NaloDAO Circular Economy</h2>
+        <p className="text-xs text-slate-500 font-light mt-0.5 leading-relaxed">List your sustainable business and accept direct, compliant stablecoin payments.</p>
+      </div>
 
-      <form onSubmit={handleRegister} className="space-y-4">
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Official Business Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-emerald-500 transition" placeholder="e.g., The Regenerative Cafe" required />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Regenerative Mission Statement</label>
-          <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} className="w-full bg-slate-950 border border-slate-800 text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-emerald-500 resize-none transition" placeholder="Explain how your supply loops align with Earth Care, People Care, and Fair Share..." required />
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Category</label>
-            <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-emerald-500 transition">
-              <option value="Agriculture">Permaculture</option>
-              <option value="Eco-Retail">Zero Waste</option>
-              <option value="Energy">Clean Energy</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Operating City</label>
-            <input type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-emerald-500 transition" placeholder="e.g., Portland" required />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">ISO Country</label>
-            <input type="text" value={country} onChange={e => setCountry(e.target.value)} maxLength={2} className="w-full bg-slate-950 border border-slate-800 text-white px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-emerald-500 uppercase transition" placeholder="US" required />
+      <form onSubmit={handleRegister} className="space-y-4 mt-6 text-left">
+        <div className="space-y-1">
+          <label className="block text-[9px] font-mono font-bold uppercase tracking-widest text-slate-500">Official Business Name</label>
+          <div className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 focus-within:border-emerald-500/60 transition">
+            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-transparent text-white text-xs font-sans focus:outline-none placeholder-slate-700" placeholder="e.g., The Regenerative Cafe" required />
           </div>
         </div>
 
-        <button type="submit" disabled={status === 'saving'} className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-emerald-500/10">
+        <div className="space-y-1">
+          <label className="block text-[9px] font-mono font-bold uppercase tracking-widest text-slate-500">Regenerative Mission Statement</label>
+          <div className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 focus-within:border-emerald-500/60 transition">
+            <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} className="w-full bg-transparent text-white text-xs font-sans focus:outline-none placeholder-slate-700 resize-none leading-relaxed" placeholder="Explain how your supply loops align with Earth Care, People Care, and Fair Share..." required />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 font-mono text-xs">
+          <div className="space-y-1">
+            <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Category</label>
+            <div className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-2.5 focus-within:border-emerald-500/60 transition">
+              <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-transparent text-white text-xs focus:outline-none cursor-pointer">
+                <option value="Agriculture" className="bg-slate-950">Permaculture</option>
+                <option value="Eco-Retail" className="bg-slate-950">Zero Waste</option>
+                <option value="Energy" className="bg-slate-950">Clean Energy</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Operating City</label>
+            <div className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 focus-within:border-emerald-500/60 transition">
+              <input type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full bg-transparent text-white text-xs font-sans focus:outline-none placeholder-slate-700" placeholder="e.g., Portland" required />
+            </div>
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">ISO Country</label>
+            <div className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 focus-within:border-emerald-500/60 transition">
+              <input type="text" value={country} onChange={e => setCountry(e.target.value)} maxLength={2} className="w-full bg-transparent text-white text-xs font-mono uppercase tracking-widest focus:outline-none placeholder-slate-700" placeholder="US" required />
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" disabled={status === 'saving'} className="w-full bg-gradient-to-r from-emerald-500 to-purple-600 disabled:opacity-50 text-slate-950 text-xs font-black uppercase tracking-widest py-3.5 rounded-lg transition hover:brightness-110 active:scale-[0.99] shadow-lg shadow-emerald-500/5">
           {status === 'saving' ? 'Publishing Registry Record...' : 'Deploy Business Identity'}
         </button>
 
-        {status === 'success' && <p className="text-xs text-emerald-400 text-center font-medium mt-2">✓ Profile live! Your identity is active on the Supply Registry.</p>}
-        {status === 'no_wallet' && <p className="text-xs text-yellow-400 text-center font-medium mt-2">⚠️ Active wallet handle not recognized. Please click "Connect LOBSTR Wallet" at the top of the page first!</p>}
-        {status === 'error' && <p className="text-xs text-red-400 text-center font-medium mt-2">❌ Registry database entry rejected. Try again.</p>}
+        {status === 'success' && <p className="text-[10px] font-mono font-bold text-emerald-400 text-center mt-2 uppercase tracking-wider">✓ Profile live! Identity loaded into registry tracks.</p>}
+        {status === 'no_wallet' && <p className="text-[10px] font-mono font-bold text-yellow-400 text-center mt-2 uppercase tracking-wider">⚠️ Address not registered. Connect passport handle first!</p>}
+        {status === 'error' && <p className="text-[10px] font-mono font-bold text-red-400 text-center mt-2 uppercase tracking-wider">❌ Registry entry rejected. Try again.</p>}
       </form>
     </div>
   );

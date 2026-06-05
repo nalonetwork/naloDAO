@@ -12,5 +12,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Export the initialized database bridge tool
+// Export the initialized single database bridge tool to be shared across your components
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
