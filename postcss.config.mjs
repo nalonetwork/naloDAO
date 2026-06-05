@@ -1,6 +1,6 @@
 const config = {
   plugins: {
-    tailwindcss: {},
+    '@tailwindcss/postcss': {}, // 🧠 Crucial v4 fix specified by your error output!
     autoprefixer: {},
   },
 };
