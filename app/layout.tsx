@@ -1,4 +1,7 @@
 import './globals.css';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'NaloDAO | Regional Ecosystem Registry',
@@ -12,8 +15,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-[#0c1115] text-slate-200 min-h-screen antialiased">
-        <div className="max-w-6xl mx-auto px-4 py-8">
+      <body className={`${inter.className} min-h-screen antialiased`}>
+        <div className="max-w-6xl mx-auto px-4 py-6">
           {children}
         </div>
       </body>

@@ -114,9 +114,8 @@ export default function SacredMarketplace() {
       const landMapAsset = currentProfile.property_banner_url || currentProfile.banner_url || 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80';
 
       return (
-        <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4 animate-fade-in text-left">
+        <div className="w-full max-w-4xl mx-auto bg-slate-900/50 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4 animate-fade-in text-left">
           
-          {/* GIS Satellite Aerial Photo Section */}
           <div className="h-48 sm:h-64 w-full relative bg-slate-900">
             <img 
               src={landMapAsset} 
@@ -152,7 +151,7 @@ export default function SacredMarketplace() {
               </span>
             </div>
 
-            <hr className="border-slate-800/60" />
+            <hr className="border-slate-800/40" />
 
             {/* Grant Vectors Submodule */}
             <div className="bg-slate-900/40 border border-slate-800/60 p-5 rounded-2xl shadow-xl space-y-3">
@@ -225,7 +224,7 @@ export default function SacredMarketplace() {
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-xl space-y-3 font-mono text-xs">
+                <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-3 font-mono text-xs">
                   <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Registry Audit Inputs</span>
                   <div className="space-y-1">
                     <label className="text-slate-400 block text-[11px]">Count Active Living Trees:</label>
@@ -251,7 +250,7 @@ export default function SacredMarketplace() {
                   </div>
                 </div>
 
-                <div className="bg-slate-950/30 border border-slate-900 p-4 rounded-xl flex flex-col justify-between space-y-3 font-mono text-xs">
+                <div className="bg-slate-950/30 border border-slate-800 p-4 rounded-xl flex flex-col justify-between space-y-3 font-mono text-xs">
                   <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Aggregated System Valuation</span>
                   <div className="space-y-1 text-left">
                     <span className="text-[10px] text-slate-500 block uppercase">Real-World Environmental Asset Value:</span>
@@ -265,23 +264,23 @@ export default function SacredMarketplace() {
                 </div>
               </div>
 
-              <div className="bg-slate-950/40 border border-slate-900/60 rounded-xl overflow-hidden text-[10px] font-mono">
+              <div className="bg-slate-950/40 border border-slate-800/60 rounded-xl overflow-hidden text-[10px] font-mono">
                 <div className="grid grid-cols-3 bg-slate-950 px-4 py-2 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-900">
                   <span>Valuation Vector</span>
                   <span className="text-center">Metric Standard</span>
                   <span className="text-right">Value Weight / Tree</span>
                 </div>
-                <div className="px-4 py-2 border-b border-slate-900/40 flex justify-between text-slate-300">
+                <div className="px-4 py-2 border-b border-slate-800/40 flex justify-between text-slate-300">
                   <span className="w-1/3 text-left">🌱 Replacement Cost (RC)</span>
                   <span className="w-1/3 text-center text-slate-500">Nursery Stock Parity</span>
                   <span className="w-1/3 text-right text-white font-bold">$100.00</span>
                 </div>
-                <div className="px-4 py-2 border-b border-slate-900/40 flex justify-between text-slate-300">
+                <div className="px-4 py-2 border-b border-slate-800/40 flex justify-between text-slate-300">
                   <span className="w-1/3 text-left">🐓 Ecological Contribution (EC)</span>
                   <span className="w-1/3 text-center text-slate-500">Habitat / Soil Web Inoculation</span>
                   <span className="w-1/3 text-right text-white font-bold">$250.00</span>
                 </div>
-                <div className="px-4 py-2 border-b border-slate-900/40 flex justify-between text-slate-300">
+                <div className="px-4 py-2 border-b border-slate-800/40 flex justify-between text-slate-300">
                   <span className="w-1/3 text-left">🛢️ Carbon Sequestration (CC)</span>
                   <span className="w-1/3 text-center text-slate-500">48 lbs CO2 Reabsorb Annually</span>
                   <span className="w-1/3 text-right text-white font-bold">$40.00</span>
@@ -361,8 +360,8 @@ export default function SacredMarketplace() {
     } else {
       // 🛍️ BRANCH B: COMMERCIAL ENTERPRISE LAYOUT FOR CAFE & ECO-STORES
       return (
-        <div className="w-full max-w-4xl mx-auto bg-slate-950/60 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl backdrop-blur-md mt-4 animate-fade-in">
-          <div className="h-48 sm:h-64 w-full relative bg-slate-900">
+        <div className="w-full max-w-4xl mx-auto bg-slate-900/40 rounded-3xl border border-slate-800/60 shadow-2xl backdrop-blur-xl mt-4 animate-fade-in text-slate-200">
+          <div className="h-48 sm:h-64 w-full relative bg-slate-950">
             <img 
               src={currentProfile.banner_url || currentProfile.image_url || 'https://images.unsplash.com/photo-1464225226634-758beb0a499a?auto=format&fit=crop&w=1200&q=80'} 
               alt="Registry Node Banner"
@@ -370,7 +369,7 @@ export default function SacredMarketplace() {
             />
             <button 
               onClick={() => setActiveProfileId(null)}
-              className="absolute top-4 left-4 sm:top-6 sm:left-6 px-4 py-2 bg-slate-950/90 border border-slate-800 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 hover:text-white transition z-20 shadow-xl"
+              className="absolute top-4 left-4 sm:top-6 sm:left-6 px-4 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400 hover:text-white transition z-20 shadow-xl"
             >
               ← Back to Network
             </button>
@@ -599,7 +598,7 @@ export default function SacredMarketplace() {
                   </div>
                 )}
 
-                <div className="text-[9px] font-mono text-slate-600 flex justify-between pt-2 border-t border-slate-800/40 select-none">
+                <div className="text-[9px] font-mono text-slate-500 flex justify-between pt-2 border-t border-slate-800/40 select-none">
                   <span>Network Routing Handle: {merchant.owner_wallet.slice(0, 8)}...{merchant.owner_wallet.slice(-8)}</span>
                   <span>Region Flag: {merchant.city}, {merchant.country_code}</span>
                 </div>
