@@ -2,11 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-}
-
-html, body {
-  background-color: #0c1115 !important;
-  color: #f8fafc !important;
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  html, body {
+    background-color: #0c1115 !important;
+    color: #f8fafc !important;
+  }
 }
