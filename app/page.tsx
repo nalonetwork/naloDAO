@@ -15,8 +15,6 @@ import PermacultureEngine from '../components/PermacultureEngine';
 
 export default function Home() {
   const [showVision, setShowVision] = useState(false);
-  
-  // FIXED: Expanded the string type definition here to recognize your new 'permaculture' tab entry 👇
   const [activeTab, setActiveTab] = useState<'governance' | 'marketplace' | 'crowdfund' | 'guild' | 'permaculture'>('governance');
 
   return (
@@ -89,7 +87,7 @@ export default function Home() {
         {[
           { id: 'governance', label: '🏛️ Democratic Consensus' },
           { id: 'marketplace', label: '🛒 Provenance Marketplace' },
-          { id: 'permaculture', label: '🌿 Design Engine' }, // FIXED: Inserted your custom navigation button tag here!
+          { id: 'permaculture', label: '🌿 Design Engine' }, 
           { id: 'crowdfund', label: '🤝 Fair-Share Mutual Aid' },
           { id: 'guild', label: '🪓 Bioregional Guild Board' }
         ].map((tab) => (
@@ -152,7 +150,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* FIXED: VIEW 3: INTEGRATED PERMACULTURE PROFILE ENGINE VIEW HOUSING 👇 */}
+        {/* VIEW 3: INTEGRATED PERMACULTURE PROFILE ENGINE VIEW HOUSING */}
         {activeTab === 'permaculture' && (
           <PermacultureEngine />
         )}
